@@ -3,11 +3,15 @@
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
-            <file>file:/C:/Users/Miguel/Documents/estga/a3s1/si/trabalho/JogoDoGalo/src/jogodogalo/tabuleiro.java</file>
-            <file>file:/C:/Users/Miguel/Documents/estga/a3s1/si/trabalho/JogoDoGalo/src/jogodogalo/Player.java</file>
-            <file>file:/C:/Users/Miguel/Documents/estga/a3s1/si/trabalho/JogoDoGalo/src/jogodogalo/GameHandler.java</file>
-            <file>file:/C:/Users/Miguel/Documents/estga/a3s1/si/trabalho/JogoDoGalo/src/jogodogalo/pecas.java</file>
-            <file>file:/C:/Users/Miguel/Documents/estga/a3s1/si/trabalho/JogoDoGalo/src/jogodogalo/JogoDoGalo.java</file>
+            <file>file:/C:/Users/Miguel/Documents/estga/a3s1/si/trabalho/Seguranca_Informatica/JogoDoGalo/src/player/ComputerEasy.java</file>
+            <file>file:/C:/Users/Miguel/Documents/estga/a3s1/si/trabalho/Seguranca_Informatica/JogoDoGalo/src/jogodogalo/Tabuleiro.java</file>
+            <file>file:/C:/Users/Miguel/Documents/estga/a3s1/si/trabalho/Seguranca_Informatica/JogoDoGalo/src/player/ComputerMedium.java</file>
+            <file>file:/C:/Users/Miguel/Documents/estga/a3s1/si/trabalho/Seguranca_Informatica/JogoDoGalo/src/jogodogalo/GameHandler.java</file>
+            <file>file:/C:/Users/Miguel/Documents/estga/a3s1/si/trabalho/Seguranca_Informatica/JogoDoGalo/src/player/Computer.java</file>
+            <file>file:/C:/Users/Miguel/Documents/estga/a3s1/si/trabalho/Seguranca_Informatica/JogoDoGalo/src/player/ComputerHard.java</file>
+            <file>file:/C:/Users/Miguel/Documents/estga/a3s1/si/trabalho/Seguranca_Informatica/JogoDoGalo/src/player/Player.java</file>
+            <file>file:/C:/Users/Miguel/Documents/estga/a3s1/si/trabalho/Seguranca_Informatica/JogoDoGalo/src/jogodogalo/pecas.java</file>
+            <file>file:/C:/Users/Miguel/Documents/estga/a3s1/si/trabalho/Seguranca_Informatica/JogoDoGalo/src/jogodogalo/JogoDoGalo.java</file>
         </group>
     </open-files>
 </project-private>

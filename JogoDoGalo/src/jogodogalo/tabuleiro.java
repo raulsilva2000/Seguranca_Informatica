@@ -4,14 +4,20 @@
  */
 package jogodogalo;
 
+import player.Player;
+
 /**
  *
  * @author Miguel
  */
-public class tabuleiro {
+public class Tabuleiro {
     private pecas[][] casas;
 
-    public tabuleiro() {
+    public pecas[][] getCasas() {
+        return casas;
+    }
+
+    public Tabuleiro() {
         this.casas=new pecas[3][3];
     }
     public boolean play(Player player,int[] casa){
