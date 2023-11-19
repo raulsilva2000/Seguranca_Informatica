@@ -44,11 +44,12 @@ public class LicenseLibrary {
         */
         try {
             ComputerProperties pc = new ComputerProperties();
-            System.out.println(pc.getOperatingSystem() + " " + pc.getMacAddress());
+            System.out.println(pc.getNumberOfCPUs() + " " + pc.getMacAddress());
         } catch (Exception e) {
             System.out.println(e);
         }
         
+        /*
         try {
             AppProperties app = new AppProperties("LicenseLibrary.jar");
             System.out.println(app.getName() + " " + app.getVersion() + " " + app.getManufacturer());
@@ -56,6 +57,7 @@ public class LicenseLibrary {
         } catch (Exception e) {
             System.out.println(e);
         }
+        */
     }
     
 }

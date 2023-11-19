@@ -5,26 +5,27 @@
 package licenselibrary;
 
 import java.io.IOException;
+import java.lang.management.ManagementFactory;
+import java.lang.management.OperatingSystemMXBean;
 import java.net.NetworkInterface;
 import java.net.SocketException;
 import java.util.Enumeration;
-import java.util.Scanner;
 
 /**
  *
  * @author Utilizador
  */
 public class ComputerProperties {
-    private String operatingSystem;
+    private int numberOfCPUs;
     private String macAddress;
     
     public ComputerProperties() throws IOException{
-        setOperatingSystem();
+        setNumberOfCPUs();
         setMacAddress();
     }
     
-    public void setOperatingSystem(){
-        operatingSystem = System.getProperty("os.name");
+    private void setNumberOfCPUs() {
+        numberOfCPUs = Runtime.getRuntime().availableProcessors();
     }
     
     public void setMacAddress() throws SocketException{
@@ -52,12 +53,11 @@ public class ComputerProperties {
         macAddress = macAddressValue.toString();
     }
 
+    public int getNumberOfCPUs() {
+        return numberOfCPUs;
+    }
+
     public String getMacAddress() {
         return macAddress;
     }
-
-    public String getOperatingSystem() {
-        return operatingSystem;
-    }
-    
 }
