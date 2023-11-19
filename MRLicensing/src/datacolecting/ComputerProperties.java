@@ -16,18 +16,18 @@ import logic.FileManager;
  * @author Utilizador
  */
 public class ComputerProperties {
-    private String operatingSystem;
+    private int numberOfCPUs;
     private String macAddress;
     private FileManager fileManager;
     
     public ComputerProperties() throws IOException{
-        setOperatingSystem();
+        setNumberOfCPUs();
         setMacAddress();
         fileManager = new FileManager();
     }
     
-    public void setOperatingSystem(){
-        operatingSystem = System.getProperty("os.name");
+    private void setNumberOfCPUs() {
+        numberOfCPUs = Runtime.getRuntime().availableProcessors();
     }
     
     public void setMacAddress() throws SocketException{
@@ -55,12 +55,11 @@ public class ComputerProperties {
         macAddress = macAddressValue.toString();
     }
 
+    public int getNumberOfCPUs() {
+        return numberOfCPUs;
+    }
+    
     public String getMacAddress() {
         return macAddress;
     }
-
-    public String getOperatingSystem() {
-        return operatingSystem;
-    }
-    
 }
