@@ -75,7 +75,7 @@ public class FileManager {
         licenseJsonObject.add("pc", gson.toJsonTree(pc));
         licenseJsonObject.add("app", gson.toJsonTree(app));
 
-        FileWriter writer = new FileWriter("license.json");
+        FileWriter writer = new FileWriter(outputFile);
         gson.toJson(licenseJsonObject, writer);
     }
 }
