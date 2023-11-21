@@ -57,4 +57,19 @@ public class FileManager {
         //write the folder from zip
         return folder;
     }
+    public void clearFolder(String folder){
+        
+    }
+    
+    public void deleteFolder(String folder){
+        
+    }
+
+    public void zipToFileWithDest(String folder, String endFile) {
+        
+    }
+
+    public void unzipToFileWithDest(String file, String endFolder) {
+        
+    }
 }
