@@ -43,9 +43,7 @@ public class AssymetricCipher {
     
     
     public void genKey(String publicKeyFileName, String privateKeyFileName) throws NoSuchAlgorithmException, IOException{
-        KeyPairGenerator kpGenerator = KeyPairGenerator.getInstance(algo);
-        kpGenerator.initialize(keySize);
-        KeyPair pair = kpGenerator.generateKeyPair();
+        KeyPair pair=genKeyPair();
         PublicKey publicKey = pair.getPublic();
         PrivateKey privateKey = pair.getPrivate();
         
@@ -54,6 +52,13 @@ public class AssymetricCipher {
         
         fileManager.writeToFile(arrayBytesPublicKey, publicKeyFileName);
         fileManager.writeToFile(arrayBytesPrivateKey, privateKeyFileName);
+    }
+    
+    public KeyPair genKeyPair() throws NoSuchAlgorithmException{
+        KeyPairGenerator kpGenerator = KeyPairGenerator.getInstance(algo);
+        kpGenerator.initialize(keySize);
+        KeyPair pair = kpGenerator.generateKeyPair();
+        return pair;
     }
     
     public void cipherFile(String fileToCipher, String encryptedFile, String publicKeyFile) throws IOException, NoSuchAlgorithmException, InvalidKeySpecException, InvalidKeyException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException{

@@ -11,10 +11,14 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
-import crypto.UserCard;
+import crypto.AssymetricCipher;
+import datacolecting.UserCard;
 import datacolecting.AppProperties;
 import datacolecting.ComputerProperties;
 import java.io.FileWriter;
+import java.security.KeyPair;
+import java.security.NoSuchAlgorithmException;
+import pt.gov.cartaodecidadao.PTEID_Exception;
 
 /**
  *
@@ -80,16 +84,40 @@ public class FileManager {
 
     public void unzipToFileWithDest(String file, String endFolder) {
         
+    }
     
-    public void licenseDataToJSON(UserCard user, ComputerProperties pc, AppProperties app, String outputFile) throws IOException{
+    public void licenseDataToJSONFile(UserCard user, ComputerProperties pc, AppProperties app, String outputFile) throws IOException, NoSuchAlgorithmException{
         Gson gson = new Gson();
-
+        
         JsonObject licenseJsonObject = new JsonObject();
-        licenseJsonObject.add("user", gson.toJsonTree(user));
-        licenseJsonObject.add("pc", gson.toJsonTree(pc));
-        licenseJsonObject.add("app", gson.toJsonTree(app));
+        
+        licenseDataToJSON(gson, licenseJsonObject, user, pc, app);
+        
+        //gerar par de chaves e adicionar ao json a chave publica
+        AssymetricCipher assymCip=new AssymetricCipher();
+        KeyPair keyPair=assymCip.genKeyPair();
+        
+        //tratar da chave privada (password ou ...)
+        
+        licenseJsonObject.add("key", gson.toJsonTree(keyPair.getPublic().getEncoded()));
 
         FileWriter writer = new FileWriter(outputFile);
         gson.toJson(licenseJsonObject, writer);
+    }
+    
+    public void licenseDataToJSON(Gson gson,JsonObject licenseJsonObject,UserCard user, ComputerProperties pc, AppProperties app){
+        
+        licenseJsonObject.add("user", gson.toJsonTree(user));
+        licenseJsonObject.add("pc", gson.toJsonTree(pc));
+        licenseJsonObject.add("app", gson.toJsonTree(app));
+    }
+    
+    public JsonObject currentDataToJSON(String jarAppFile) throws PTEID_Exception, IOException, FileNotFoundException, NoSuchAlgorithmException{
+        Gson gson = new Gson();
+        
+        JsonObject licenseJsonObject = new JsonObject();
+        licenseDataToJSON(gson, licenseJsonObject, new UserCard(), new ComputerProperties(), new AppProperties(jarAppFile));
+        
+        return licenseJsonObject;
     }
 }
