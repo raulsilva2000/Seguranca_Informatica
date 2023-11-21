@@ -4,74 +4,148 @@
  */
 package logic;
 
+import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 /**
  *
  * @author Miguel
  */
 public class MRLicensing {
+    private FileManager fileManager;
+    private String licenceRep;
+    private String defaultLicenseFolder;
 
     public MRLicensing() {
+        fileManager=new FileManager();
+        licenceRep="/LicenseRep";
+        defaultLicenseFolder=licenceRep+"/default";
     }
     
-    public String askNewLicence(){
-        String src="";//pwd of licenseAsk file
-        //sign app
-        //get app detail
-        //get user details
-        //get pc details
-        //data to json
+    public String askNewLicence(String userName){
+        String src="/MRLic_"+userName+".zip";//pwd of licenseAsk file
         
-        //sign data
-        //cerificado de user
+        String tempFolder="/MRAskNewLicenseTemp";
+        String tempDataFolder=tempFolder+"/data";
+        fileManager.clearFolder(tempFolder);
         
-        //all above zip folder
+        getDataJson(tempDataFolder);
         
-        //symetric cipher zip
-        //assymetic cipher symetric key
+        signAll(tempDataFolder);
         
-        //zip folder with encripted data, encripted key(pub key ges), intial vector
+        String dataTempZip="";
+        try {
+            dataTempZip=fileManager.zipToFile(tempDataFolder);
+        } catch (IOException ex) {
+            Logger.getLogger(MRLicensing.class.getName()).log(Level.SEVERE, null, ex);
+        }
         
-        //return pwd of zip
+        fileManager.deleteFolder(tempDataFolder);
+        
+        String key=getGestorKey();
+        secureComs(dataTempZip, key);
+        
+        fileManager.zipToFileWithDest(tempFolder,src);
+        fileManager.deleteFolder(tempFolder);
         return src;
     }
     
-    public boolean verifyLicense(){
-        if(verifyCurrenteLicense()){
+    private boolean validateLicence(String file){
+        openLicense(file);
+        
+        String lData=getLicenseData();
+        
+        fileManager.clearFolder(defaultLicenseFolder);
+        
+        String cData=getCurrentData();
+        
+        if (lData.equals(cData)){
+            //++tolerancias
             return true;
         }
+        
+        
+        return false;
+    }
+    
+    public boolean verifyLicense(String userName){
+        String licFile="/MRLic_"+userName+".zip";
+        //search for lic username
+        if (validateLicence(licFile)){
+            return true;
+        }
+        
         return verifyNewLicense("");
     }
     private boolean verifyNewLicense(String pwd){
-        //unzip
         if(validateLicence(pwd)){
-            //unzip
-            //change folder to normal pwd
+            //change zip to normal pwd
             return true;
         }
         return false;
     }
-    private boolean verifyCurrenteLicense(){
-        //check acording with user
-        
-        
-        return false;
-    }
     
     
-    private boolean validateLicence(String folder){
-        //decript symetric key with user private key
-        //unzip
-        //decript data(future .json)
-        //check sign form gestor(hash data==descript sign with public key (certificado))
-
-        //hash app
+    private String getData(){
         //get app detail
         //get user details
         //get pc details
+        return "";
+    }
+    
+    private String getDataJson(String folder){
+        getData();
         
-        //check if data matches with first json
+        //create assymetric key to license
         
+        //data to json
+        return "jsonObject";
+    }
+    
+    private String getCurrentData(){
+        //hash app
+        getData();
+        return "";
+    }
+    
+    private String getLicenseData(){
+        try {
+            fileManager.readFileToBytes(defaultLicenseFolder+"/data/data.json");
+        } catch (IOException ex) {
+            Logger.getLogger(MRLicensing.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return "";
+    }
+    
+    private void signAll(String folder){
+        //sign app
         
-        return false;
+        //sign data
+        //cerificado de user
+    }
+    
+    private void openLicense(String file){
+        //get user private key
+        
+        fileManager.unzipToFileWithDest(file,defaultLicenseFolder);
+        
+        //decript symetric key with user private key
+        
+        //decript data(future .json)
+        
+        fileManager.unzipToFile(defaultLicenseFolder+"/data");
+        
+        //check sign form gestor(hash data==descript sign with public key (certificado))
+    }
+    
+    private void secureComs(String file, String key){
+        //symetric cypher
+        
+        //assimetric cypher of symmmetric key with gestor public key
+    }
+    
+    private String getGestorKey() {
+        return "";
     }
 }
