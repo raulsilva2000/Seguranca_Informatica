@@ -9,9 +9,10 @@ import pt.gov.cartaodecidadao.*;
  *
  * @author Utilizador
  */
-public class IDCardDetails {
+public class UserCard {
     private String fullName;
     private String civilNumber;
+    private String email;
     
     /* NOTE: the following static block is strictly necessary once
     that you must explicitly load the JNI library that implements
@@ -25,7 +26,7 @@ public class IDCardDetails {
         }
     }
     
-    public IDCardDetails() throws PTEID_Exception{
+    public UserCard() throws PTEID_Exception{
         getDetails();
     }
     
@@ -50,6 +51,14 @@ public class IDCardDetails {
 
     public String getCivilNumber() {
         return civilNumber;
+    }
+    
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
     }
     
 }

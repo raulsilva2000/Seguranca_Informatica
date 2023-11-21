@@ -9,6 +9,12 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
+import crypto.UserCard;
+import datacolecting.AppProperties;
+import datacolecting.ComputerProperties;
+import java.io.FileWriter;
 
 /**
  *
@@ -41,17 +47,20 @@ public class FileManager {
         byte[] outputBytes=inputBytes;//change this
         return outputBytes;
     }
+    
     public byte[] unzip(String file) throws IOException{
         byte[] inputBytes=readFileToBytes(file);
         //unzip
         byte[] outputBytes=inputBytes;//change this
         return outputBytes;
     }
+    
     public String zipToFile(String folder) throws IOException{
         String fileZip=folder;
         //write a zip 
         return fileZip;
     }
+    
     public String unzipToFile(String filezip){
         String folder=filezip;
         //write the folder from zip
@@ -71,5 +80,16 @@ public class FileManager {
 
     public void unzipToFileWithDest(String file, String endFolder) {
         
+    
+    public void licenseDataToJSON(UserCard user, ComputerProperties pc, AppProperties app, String outputFile) throws IOException{
+        Gson gson = new Gson();
+
+        JsonObject licenseJsonObject = new JsonObject();
+        licenseJsonObject.add("user", gson.toJsonTree(user));
+        licenseJsonObject.add("pc", gson.toJsonTree(pc));
+        licenseJsonObject.add("app", gson.toJsonTree(app));
+
+        FileWriter writer = new FileWriter(outputFile);
+        gson.toJson(licenseJsonObject, writer);
     }
 }
