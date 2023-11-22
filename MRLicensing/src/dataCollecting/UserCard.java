@@ -2,12 +2,12 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
-package licenselibrary;
+package dataCollecting;
 import pt.gov.cartaodecidadao.*;
 
 /**
  *
- * @author Utilizador
+ * @author Miguel
  */
 public class UserCard {
     private String fullName;
@@ -60,5 +60,4 @@ public class UserCard {
     public void setEmail(String email) {
         this.email = email;
     }
-    
 }
