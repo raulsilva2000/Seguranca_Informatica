@@ -42,7 +42,7 @@ public class DigitalSignature {
     public DigitalSignature() {
         fileManager=new FileManager();
     }
-
+    
     public void writeCertificate(String fileName, Certificate cert) throws FileNotFoundException, IOException, CertificateEncodingException{
         File file = new File(fileName);
         try (FileOutputStream outputStream = new FileOutputStream(file); Writer writer = new OutputStreamWriter(outputStream, StandardCharsets.UTF_8)) {
