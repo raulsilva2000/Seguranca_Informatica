@@ -66,7 +66,7 @@ public class CertificateValidity {
         }
     }
     
-    private void buildCertificationPath(String govTrustAnchor, String intermediateCertificates) throws FileNotFoundException, CertificateException, IOException, NoSuchAlgorithmException, KeyStoreException, InvalidAlgorithmParameterException, CertPathBuilderException{
+    private void buildCertificationPath() throws FileNotFoundException, CertificateException, IOException, NoSuchAlgorithmException, KeyStoreException, InvalidAlgorithmParameterException, CertPathBuilderException{
         //defines the end-user certificate as a selector
         X509CertSelector cs = new X509CertSelector();
         cs.setCertificate(this.userCertificate);
@@ -76,7 +76,7 @@ public class CertificateValidity {
         // Create a KeyStore with the Gov Trust Anchor
         trustAnchorKeyStore = KeyStore.getInstance(KeyStore.getDefaultType());
         trustAnchorKeyStore.load(null, null); // Initialize the keystore
-        FileInputStream fis = new FileInputStream(govTrustAnchor); // Read the Gov Trust Anchor
+        FileInputStream fis = new FileInputStream("PTCardCertificates/govTrustCertificate/ECRaizEstado002.crt"); // Read the Gov Trust Anchor
         X509Certificate trustAnchorCertificate = (X509Certificate) certificateFactory.generateCertificate(fis);
         fis.close();
         trustAnchorKeyStore.setCertificateEntry(trustAnchorCertificate.getSubjectX500Principal().getName(), trustAnchorCertificate);
@@ -87,7 +87,7 @@ public class CertificateValidity {
         pkixBParams.setRevocationEnabled(false); //No revocation check
         
         // Get Intermediate Certificates
-        File intermediateCertFolder = new File(intermediateCertificates);
+        File intermediateCertFolder = new File("PTCardCertificates/intermediateCertificates/");
         File[] listOfIntermediateCertFiles = intermediateCertFolder.listFiles();
         
         List<X509Certificate> iCerts = new ArrayList<>();
@@ -131,7 +131,7 @@ public class CertificateValidity {
             isCertificateTimeValid();
 
             // Build the Certification Path
-            buildCertificationPath(govTrustAnchor, intermediateCertificates);
+            buildCertificationPath();
 
             // Validate the Certification Path
             validateCertificationPath();
