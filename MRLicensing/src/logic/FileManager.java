@@ -70,12 +70,38 @@ public class FileManager {
         //write the folder from zip
         return folder;
     }
-    public void clearFolder(String folder){
-        
+    
+    public void clearFolder(String folderPath){
+        File folder = new File(folderPath);
+
+        File[] files = folder.listFiles();
+        if (files != null) {
+            for (File file : files) {
+                if (file.isDirectory()) {
+                    clearFolder(file.getAbsolutePath());
+                }
+                file.delete();
+            }
+        }
     }
     
-    public void deleteFolder(String folder){
-        
+    public void deleteFolder(String folderPath){
+        File folder = new File(folderPath);
+        if (folder.exists()) {
+            File[] files = folder.listFiles();
+            if (files != null) {
+                for (File file : files) {
+                    if (file.isDirectory()) {
+                        // Recursively delete subfolders and files
+                        deleteFolder(file.getPath());
+                    } else {
+                        file.delete();
+                    }
+                }
+            }
+            // Delete the main folder once its contents are deleted
+            folder.delete();
+        }
     }
 
     public void zipToFileWithDest(String folder, String endFile) {
