@@ -131,7 +131,7 @@ public class MRLicensing {
     private void openLicense(String file){
         //get user private key
         
-        fileManager.unzipToFileWithDest(file,defaultLicenseFolder);
+        fileManager.unzipFileWithDest(file,defaultLicenseFolder);
         
         //decript symetric key with user private key
         
