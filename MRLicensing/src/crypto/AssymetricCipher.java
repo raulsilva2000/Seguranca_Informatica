@@ -9,6 +9,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
 import java.security.KeyFactory;
 import java.security.KeyPair;
@@ -20,6 +21,7 @@ import java.security.spec.EncodedKeySpec;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
+import java.util.Base64;
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
@@ -33,7 +35,7 @@ import logic.FileManager;
 public class AssymetricCipher {
     final String algo = "RSA";
     final String cipherMode = "ECB";
-    final String padding = "NoPadding";
+    final String padding = "PKCS1Padding";
     final int keySize = 4096;
     FileManager fileManager;
     
@@ -79,7 +81,7 @@ public class AssymetricCipher {
     public void decipherFile(String fileToDecipher, String decryptedFile, String privateKeyFile) throws IOException, NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, InvalidKeySpecException, IllegalBlockSizeException, BadPaddingException{
         byte[] arrayBytesPrivateKey = fileManager.readFileToBytes(privateKeyFile);
         byte[] arrayBytesWithContent = fileManager.readFileToBytes(fileToDecipher);
-        
+
         KeyFactory keyFactory = KeyFactory.getInstance(algo);
         EncodedKeySpec privateKeySpec = new PKCS8EncodedKeySpec(arrayBytesPrivateKey);
         PrivateKey privateKey = keyFactory.generatePrivate(privateKeySpec);
