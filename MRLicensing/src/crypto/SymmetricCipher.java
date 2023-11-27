@@ -38,25 +38,25 @@ public class SymmetricCipher {
         fileManager=new FileManager();
     }
    
-    public void genKey(String keyFileName) throws NoSuchAlgorithmException, IOException{
+    public byte[] genKey(String keyFileName) throws NoSuchAlgorithmException, IOException{
         KeyGenerator keyGen = KeyGenerator.getInstance(algo);
         keyGen.init(256);
         SecretKey originalKey = keyGen.generateKey();
         byte[] arrayBytes = originalKey.getEncoded();
         fileManager.writeToFile(arrayBytes, keyFileName);
+        return arrayBytes;
     }
     
-    public void genVector(String vectorFileName) throws NoSuchAlgorithmException, NoSuchPaddingException, IOException{
+    public byte[] genVector(String vectorFileName) throws NoSuchAlgorithmException, NoSuchPaddingException, IOException{
         SecureRandom random = SecureRandom.getInstanceStrong();
         byte[] iv = new byte[Cipher.getInstance(algo).getBlockSize()];
         random.nextBytes(iv);
         fileManager.writeToFile(iv, vectorFileName);
+        return iv;
     }
     
-    public void cipherFile(String fileToCipher, String encryptedFile, String keyFile, String vectorFile) throws IOException, NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, InvalidAlgorithmParameterException, IllegalBlockSizeException, BadPaddingException{   
+    public void cipherFile(String fileToCipher, String encryptedFile, byte[] arrayBytesKey, byte[] arrayBytesVector) throws IOException, NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, InvalidAlgorithmParameterException, IllegalBlockSizeException, BadPaddingException{   
         byte[] arrayBytesWithContent = fileManager.readFileToBytes(fileToCipher);
-        byte[] arrayBytesKey = fileManager.readFileToBytes(keyFile);
-        byte[] arrayBytesVector = fileManager.readFileToBytes(vectorFile);
         
         SecretKey key = new SecretKeySpec(arrayBytesKey, 0 , arrayBytesKey.length, algo);
         Cipher cipher = Cipher.getInstance(algo+"/"+cipherMode+"/"+padding);

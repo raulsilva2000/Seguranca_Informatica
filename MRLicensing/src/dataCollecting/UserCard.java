@@ -26,8 +26,9 @@ public class UserCard {
         }
     }
     
-    public UserCard() throws PTEID_Exception{
+    public UserCard(String email) throws PTEID_Exception{
         getDetails();
+        setEmail(email);
     }
     
     private void getDetails() throws PTEID_Exception{

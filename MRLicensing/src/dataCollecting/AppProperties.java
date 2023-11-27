@@ -25,36 +25,24 @@ public class AppProperties {
     private String jarFileName;
     private String name;
     private String version;
-    private String manufacturer;
     final String algo = "SHA-256";
     private String hash;
     private FileManager fileManager;
     
-    public AppProperties(String jarFileName) throws IOException, FileNotFoundException, NoSuchAlgorithmException{
-        this.jarFileName = jarFileName;
-        setManifestProperties();
-        setHash();
+    public AppProperties(String appName,String version) throws IOException, FileNotFoundException, NoSuchAlgorithmException{
         fileManager=new FileManager();
+        this.jarFileName = fileManager.getJarFileName();
+        setHash();
+        this.name=appName;
+        this.version=version;
     }
     
-    public void setManifestProperties() throws IOException {
-        File jf = new File("dist/LicenseLibrary.jar");
-        JarFile jarFile = new JarFile(jf);
-        Manifest manifest = jarFile.getManifest();
-        
-        if (manifest != null) {
-                Attributes attributes = manifest.getMainAttributes();
-                name = attributes.getValue("Implementation-Title");
-                version = attributes.getValue("Implementation-Version");
-                manufacturer = attributes.getValue("Implementation-Manufacturer");
-        }
-    }
     
     public void setHash() throws FileNotFoundException, IOException, NoSuchAlgorithmException{
         MessageDigest md = MessageDigest.getInstance(algo);
-        byte[] arrayBytesWithContent = fileManager.readFileToBytes("dist/"+jarFileName);
+        byte[] arrayBytesWithContent = fileManager.readFileToBytes(jarFileName);
         
-        FileInputStream inputStream = new FileInputStream("dist/"+jarFileName);
+        FileInputStream inputStream = new FileInputStream(jarFileName);
         inputStream.read(arrayBytesWithContent);
         
         byte[] encodedhash = md.digest(arrayBytesWithContent);
@@ -67,10 +55,6 @@ public class AppProperties {
 
     public String getVersion() {
         return version;
-    }
-
-    public String getManufacturer() {
-        return manufacturer;
     }
     
     public String getHash() {

@@ -4,6 +4,7 @@
  */
 package jogodogalo;
 
+import java.io.File;
 import player.ComputerEasy;
 import player.Player;
 
@@ -19,6 +20,7 @@ public class JogoDoGalo {
      */
     public static void main(String[] args) {
         // TODO code application logic here
+        
         Player player1=new Player(0, pecas.CROSS);
         ComputerEasy player2=new ComputerEasy(1, pecas.BALL);
         GameHandler gameHandler=new GameHandler(player1, player2);

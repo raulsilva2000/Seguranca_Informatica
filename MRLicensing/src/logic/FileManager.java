@@ -18,6 +18,8 @@ import dataCollecting.ComputerProperties;
 import java.io.FileWriter;
 import java.security.KeyPair;
 import java.security.NoSuchAlgorithmException;
+import java.security.PrivateKey;
+import java.util.Scanner;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
@@ -200,7 +202,7 @@ public class FileManager {
         }
     }
     
-    public void licenseDataToJSONFile(UserCard user, ComputerProperties pc, AppProperties app, String outputFile) throws IOException, NoSuchAlgorithmException{
+    public void licenseDataToJSONFile(UserCard user, ComputerProperties pc, AppProperties app, String outputFile,Scanner sc) throws IOException, NoSuchAlgorithmException{
         Gson gson = new Gson();
         
         JsonObject licenseJsonObject = new JsonObject();
@@ -211,7 +213,7 @@ public class FileManager {
         AssymetricCipher assymCip=new AssymetricCipher();
         KeyPair keyPair=assymCip.genKeyPair();
         
-        //tratar da chave privada (password ou ...)
+        addNewPrivateKey(keyPair.getPrivate(),user.getEmail(),sc);
         
         licenseJsonObject.add("key", gson.toJsonTree(keyPair.getPublic().getEncoded()));
 
@@ -226,12 +228,48 @@ public class FileManager {
         licenseJsonObject.add("app", gson.toJsonTree(app));
     }
     
-    public JsonObject currentDataToJSON(String jarAppFile) throws PTEID_Exception, IOException, FileNotFoundException, NoSuchAlgorithmException{
+    public JsonObject currentDataToJSON(String jarAppFile, String email,String appName, String version) throws PTEID_Exception, IOException, FileNotFoundException, NoSuchAlgorithmException{
         Gson gson = new Gson();
         
         JsonObject licenseJsonObject = new JsonObject();
-        licenseDataToJSON(gson, licenseJsonObject, new UserCard(), new ComputerProperties(), new AppProperties(jarAppFile));
+        licenseDataToJSON(gson, licenseJsonObject, new UserCard(email), new ComputerProperties(), new AppProperties(appName,version));
         
         return licenseJsonObject;
+    }
+
+    public void createFolder(String folder) {
+        new File(folder).mkdir();
+    }
+    
+    public String getJarFileName(){
+        File folderDir=new File("dist");
+        File[] files=folderDir.listFiles();
+        for (File file : files) {
+            if(file.getName().endsWith(".jar")){
+                return file.getAbsolutePath();
+            }
+        }
+        return "";
+    }
+    
+    private void addNewPrivateKey(PrivateKey privateKey,String email, Scanner sc){
+        String password;
+        String aux;
+        while (true){
+            System.out.println(email+"--> Introduza a password para a sua licença de utilização:");
+            aux=sc.nextLine();
+            if(aux.length()>5){
+                password=aux;
+                break;
+            }
+            else{
+                System.out.println("!!Caracteres insuficientes!!");
+            }
+        }
+            
+        //PBE
+        
+        createFolder("privateKey");
+        //writeToFile(salt.getBytes, "privateKey/salt_"+email);
     }
 }

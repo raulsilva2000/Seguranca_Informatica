@@ -25,12 +25,16 @@ import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.security.spec.InvalidKeySpecException;
+import java.util.Scanner;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import pt.gov.cartaodecidadao.PTEID_Exception;
+
 
 /**
  *
@@ -39,51 +43,96 @@ import pt.gov.cartaodecidadao.PTEID_Exception;
 public class MRLicensing {
     private FileManager fileManager;
     private String licenceRep;
-    private String defaultLicenseFolder;
+    private String tempWorkingDir;
     private DigitalSignature digitalSignature;
+    private String appName;
+    private String version;
+    private static final String EMAIL_REGEX ="^[a-zA-Z0-9_+&*-]+(?:\\.[a-zA-Z0-9_+&*-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,7}$";
+
+    private static final Pattern pattern = Pattern.compile(EMAIL_REGEX);
+
+    
 
     public MRLicensing() {
         fileManager=new FileManager();
-        licenceRep="/LicenseRep";
-        defaultLicenseFolder=licenceRep+"/default";
+        licenceRep="LicenseRep";
+        tempWorkingDir=licenceRep+"/TempWorkingDir";
+        fileManager.createFolder(licenceRep);
+        fileManager.createFolder(tempWorkingDir);
+    }
+    public void init(String nomeDaApp, String versao){
         digitalSignature=new DigitalSignature();
+        this.appName=nomeDaApp;
+        this.version=versao;
     }
     
-    public String askNewLicence(String userName) throws PTEID_Exception, IOException, FileNotFoundException, NoSuchAlgorithmException, KeyStoreException, CertificateException, UnrecoverableKeyException, InvalidKeyException, SignatureException, NoSuchPaddingException, InvalidAlgorithmParameterException, IllegalBlockSizeException, BadPaddingException, InvalidKeySpecException{
-        String src="/MRLic_"+userName+".zip";//pwd of licenseAsk file
-        
-        String tempFolder="/MRAskNewLicenseTemp";
-        String tempDataJSON=tempFolder+"/data.json";
-        fileManager.clearFolder(tempFolder);
-        
-        fileManager.licenseDataToJSONFile(new UserCard(),new ComputerProperties(),new AppProperties(""),tempDataJSON);
-        
-        signDataJSON(tempDataJSON,tempFolder);
-        
-        String dataTempZip="";
-        try {
-            dataTempZip=fileManager.zipToFile(tempDataJSON);
-        } catch (IOException ex) {
-            Logger.getLogger(MRLicensing.class.getName()).log(Level.SEVERE, null, ex);
+    public boolean isRegistered(){
+        return false;
+    }
+    
+    public boolean startRegistration(){
+        Scanner sc=new Scanner(System.in);
+        String email;
+        String aux;
+        while (true){
+            System.out.println("Introduza o seu email:");
+            aux=sc.nextLine();
+            if(isValidEmail(aux)){
+                email=aux;
+                break;
+            }
+            else{
+                System.out.println("!!Email invalido!!");
+            }
         }
+        try {
+            System.out.println("O pedido de licença está no diretório:\n"+askNewLicence(email, sc));
+            return true;
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+            fileManager.clearFolder(tempWorkingDir);
+        }
+        sc.close();
+        return false;
+    }
+     
+    public void showLicenseInfo(){
         
-        fileManager.deleteFolder(tempDataJSON);
+    }
+    
+    private String askNewLicence(String email,Scanner sc) throws PTEID_Exception, IOException, FileNotFoundException, NoSuchAlgorithmException, KeyStoreException, CertificateException, UnrecoverableKeyException, InvalidKeyException, SignatureException, NoSuchPaddingException, InvalidAlgorithmParameterException, IllegalBlockSizeException, BadPaddingException, InvalidKeySpecException{
+        String src=licenceRep+"/MRLicReq_"+email+".zip";//pwd of licenseAsk file
+        
+        fileManager.clearFolder(tempWorkingDir);
+        
+        String tempDataFolder=tempWorkingDir+"/data";
+        fileManager.createFolder(tempDataFolder);
+        
+        String tempDataJSON=tempDataFolder+"/data.json";
+        String dataTempZip=tempWorkingDir+"/data.zip";
+        
+        fileManager.licenseDataToJSONFile(new UserCard(email),new ComputerProperties(),new AppProperties(appName,version),tempDataJSON,sc);
+        
+        signDataJSON(tempDataJSON,tempDataFolder);
+        
+        fileManager.zipToFileWithDest(tempDataFolder,dataTempZip);
+        fileManager.deleteFolder(tempDataFolder);
                 
-        secureComs(dataTempZip, "certificate_manager");
+        secureComs(dataTempZip, tempWorkingDir+"/managerCertificate.crt");
         
-        fileManager.zipToFileWithDest(tempFolder,src);
-        fileManager.deleteFolder(tempFolder);
+        fileManager.zipToFileWithDest(tempWorkingDir,src);
+        fileManager.deleteFolder(tempWorkingDir);
         return src;
     }
     
-    private boolean validateLicence(String file) throws PTEID_Exception, IOException, FileNotFoundException, NoSuchAlgorithmException{
+    private boolean validateLicence(String file, String email) throws PTEID_Exception, IOException, FileNotFoundException, NoSuchAlgorithmException{
         openLicense(file);
         
         String lData=getLicenseData();
         
-        fileManager.clearFolder(defaultLicenseFolder);
+        fileManager.clearFolder(tempWorkingDir);
         
-        JsonObject cData=fileManager.currentDataToJSON(file);
+        JsonObject cData=fileManager.currentDataToJSON(file,email,appName,version);
         
         if (lData.equals(cData)){
             //++tolerancias
@@ -94,17 +143,17 @@ public class MRLicensing {
         return false;
     }
     
-    public boolean verifyLicense(String userName) throws PTEID_Exception, IOException, FileNotFoundException, NoSuchAlgorithmException{
-        String licFile="/MRLic_"+userName+".zip";
+    public boolean verifyLicense(String email) throws PTEID_Exception, IOException, FileNotFoundException, NoSuchAlgorithmException{
+        String licFile="/MRLic_"+email+".zip";
         //search for lic username
-        if (validateLicence(licFile)){
+        if (validateLicence(licFile,email)){
             return true;
         }
         
-        return verifyNewLicense("");
+        return verifyNewLicense("",email);
     }
-    private boolean verifyNewLicense(String pwd) throws PTEID_Exception, IOException, FileNotFoundException, NoSuchAlgorithmException{
-        if(validateLicence(pwd)){
+    private boolean verifyNewLicense(String pwd,String email) throws PTEID_Exception, IOException, FileNotFoundException, NoSuchAlgorithmException{
+        if(validateLicence(pwd,email)){
             //change zip to normal pwd
             return true;
         }
@@ -114,7 +163,7 @@ public class MRLicensing {
         
     private String getLicenseData(){
         try {
-            fileManager.readFileToBytes(defaultLicenseFolder+"/data/data.json");
+            fileManager.readFileToBytes(tempWorkingDir+"/data/data.json");
         } catch (IOException ex) {
             Logger.getLogger(MRLicensing.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -123,7 +172,7 @@ public class MRLicensing {
     
     private void signDataJSON(String jsonFile,String tempFolder) throws KeyStoreException, IOException, NoSuchAlgorithmException, CertificateException, UnrecoverableKeyException, InvalidKeyException, SignatureException{
         //sign json
-        digitalSignature.signFileWithID(jsonFile, tempFolder+"/certicate_userCard", tempFolder+"/signature_dataJSON_user");
+        digitalSignature.signFileWithID(jsonFile, tempFolder+"/certicate.crt", tempFolder+"/signature.txt");
         
         
     }
@@ -131,32 +180,38 @@ public class MRLicensing {
     private void openLicense(String file){
         //get user private key
         
-        fileManager.unzipFileWithDest(file,defaultLicenseFolder);
+        fileManager.unzipFileWithDest(file,tempWorkingDir);
         
         //decript symetric key with user private key
         
         //decript data(future .json)
         
-        fileManager.unzipToFile(defaultLicenseFolder+"/data");
+        fileManager.unzipToFile(tempWorkingDir+"/data");
         
         //check sign form gestor(hash data==descript sign with public key (certificado))
     }
     
-    private void secureComs(String file, String certificateFile) throws NoSuchAlgorithmException, IOException, NoSuchPaddingException, InvalidKeyException, InvalidAlgorithmParameterException, IllegalBlockSizeException, BadPaddingException, CertificateException, InvalidKeySpecException{
-        String symmetricKeyFile="symmetric_key";
-        String initialVectorFile="ini_vec";
-        String encryptedZipFile= "data.crypto";
+    private void secureComs(String zipFile, String managerCertificateFile) throws NoSuchAlgorithmException, IOException, NoSuchPaddingException, InvalidKeyException, InvalidAlgorithmParameterException, IllegalBlockSizeException, BadPaddingException, CertificateException, InvalidKeySpecException{
+        String symmetricKeyFile=tempWorkingDir+"/sKey.txt";
+        String symmetricEncryptedKeyFile=tempWorkingDir+"/sKey.crypto";
+        String initialVectorFile=tempWorkingDir+"/iv.txt";
+        String encryptedZipFile= tempWorkingDir+"/data.crypto";
         
         //symetric cypher
         SymmetricCipher sCipher=new SymmetricCipher();
-        sCipher.genKey(symmetricKeyFile);
-        sCipher.genVector(initialVectorFile);
-        sCipher.cipherFile(file,encryptedZipFile, symmetricKeyFile, initialVectorFile);
-        
+        byte[] keyBytes=sCipher.genKey(symmetricKeyFile);
+        byte[] ivBytes=sCipher.genVector(initialVectorFile);
+        sCipher.cipherFile(zipFile,encryptedZipFile, keyBytes, ivBytes);
+        fileManager.deleteFolder(zipFile);
         
         //assimetric cypher of symmmetric key with manager public key
         AssymetricCipher aCipher=new AssymetricCipher();
-        aCipher.cipherFile(symmetricKeyFile+".txt", symmetricKeyFile+".crypto", certificateFile);
-        fileManager.deleteFolder(symmetricKeyFile+".txt");
+        aCipher.cipherFile(symmetricKeyFile, symmetricEncryptedKeyFile, managerCertificateFile);
+        fileManager.deleteFolder(symmetricKeyFile);
+    }
+    
+    public static boolean isValidEmail(String email) {
+        Matcher matcher = pattern.matcher(email);
+        return matcher.matches();
     }
 }
