@@ -33,7 +33,7 @@ import logic.FileManager;
 public class AssymetricCipher {
     final String algo = "RSA";
     final String cipherMode = "ECB";
-    final String padding = "NoPadding";
+    final String padding = "PKCS1Padding";
     final int keySize = 4096;
     FileManager fileManager;
     
