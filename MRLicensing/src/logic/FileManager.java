@@ -19,7 +19,10 @@ import java.io.FileWriter;
 import java.security.KeyPair;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
+import java.security.spec.PKCS8EncodedKeySpec;
 import java.util.Scanner;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
@@ -252,7 +255,7 @@ public class FileManager {
         return "";
     }
     
-    private void addNewPrivateKey(PrivateKey privateKey,String email, Scanner sc){
+    private void addNewPrivateKey(PrivateKey privateKey, String email, Scanner sc){
         String password;
         String aux;
         while (true){
@@ -268,8 +271,17 @@ public class FileManager {
         }
             
         //PBE
+        AssymetricCipher aCipher = new AssymetricCipher();
+        byte[] salt = aCipher.generateRandomSalt();
         
         createFolder("privateKey");
-        //writeToFile(salt.getBytes, "privateKey/salt_"+email);
+        
+        try {
+            writeToFile(salt, "privateKey/salt_"+email);
+            writeToFile(aCipher.protectPrivateKey(privateKey, password, salt), "privateKey/PBE_protectedPrivateKey.txt");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
     }
 }
