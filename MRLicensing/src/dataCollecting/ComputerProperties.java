@@ -4,6 +4,7 @@
  */
 package dataCollecting;
 
+import com.google.gson.annotations.Expose;
 import java.io.IOException;
 import java.net.NetworkInterface;
 import java.net.SocketException;
@@ -16,7 +17,9 @@ import logic.FileManager;
  * @author Utilizador
  */
 public class ComputerProperties {
+    @Expose
     private int numberOfCPUs;
+    @Expose
     private String macAddress;
     private FileManager fileManager;
     

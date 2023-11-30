@@ -4,6 +4,7 @@
  */
 package dataCollecting;
 
+import com.google.gson.annotations.Expose;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -23,9 +24,12 @@ import logic.FileManager;
  */
 public class AppProperties {
     private String jarFileName;
+    @Expose
     private String name;
+    @Expose
     private String version;
     final String algo = "SHA-256";
+    @Expose
     private String hash;
     private FileManager fileManager;
     

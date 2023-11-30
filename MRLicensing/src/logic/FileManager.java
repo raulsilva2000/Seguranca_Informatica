@@ -10,16 +10,21 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import crypto.AssymetricCipher;
 import dataCollecting.UserCard;
 import dataCollecting.AppProperties;
 import dataCollecting.ComputerProperties;
+import dataCollecting.LicenseData;
 import java.io.FileWriter;
 import java.security.KeyPair;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
+import java.security.PublicKey;
 import java.security.spec.PKCS8EncodedKeySpec;
+import java.util.Base64;
 import java.util.Scanner;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -206,37 +211,54 @@ public class FileManager {
     }
     
     public void licenseDataToJSONFile(UserCard user, ComputerProperties pc, AppProperties app, String outputFile,Scanner sc) throws IOException, NoSuchAlgorithmException{
+        
+        /////
+        /*
         Gson gson = new Gson();
-        
-        JsonObject licenseJsonObject = new JsonObject();
-        
-        licenseDataToJSON(gson, licenseJsonObject, user, pc, app);
+        String jsonInfoApp = gson.toJson(infoAppUtilizador);
+        String jsonSistema = gson.toJson(sistema);
+        Gson gsonAux = new GsonBuilder().excludeFieldsWithoutExposeAnnotation().create();
+        String jsonUtilizador = gsonAux.toJson(utilizador);
+        String jsonAllData = "{\n"
+                + "\"AppInfoUtilizador\": " + jsonInfoApp + ",\n \"Sistema\":" + jsonSistema + ",\n \"Utilizador\":" + jsonUtilizador + "\n}";
+        doFile(pathJson, jsonAllData.getBytes());
+        */
+        /////
+        LicenseData ld=new LicenseData(user, pc, app);
         
         //gerar par de chaves e adicionar ao json a chave publica
         AssymetricCipher assymCip=new AssymetricCipher();
         KeyPair keyPair=assymCip.genKeyPair();
         
-        addNewPrivateKey(keyPair.getPrivate(),user.getEmail(),sc);
         
-        licenseJsonObject.add("key", gson.toJsonTree(keyPair.getPublic().getEncoded()));
-
+        
+        String publicKey = Base64.getEncoder().encodeToString(keyPair.getPublic().getEncoded());
+        
+        System.out.println(publicKey);
+        
+        Gson gson = new GsonBuilder().excludeFieldsWithoutExposeAnnotation().create();
+        
+        //JsonObject licenseJsonObject = new JsonObject();
+        ld.setUserPublicKey(publicKey);
+        
+        writeToFile(gson.toJson(ld).getBytes(), outputFile);
+/*
         FileWriter writer = new FileWriter(outputFile);
         gson.toJson(licenseJsonObject, writer);
+        */
+        addNewPrivateKey(keyPair.getPrivate(),user.getEmail(),sc);
     }
     
-    public void licenseDataToJSON(Gson gson,JsonObject licenseJsonObject,UserCard user, ComputerProperties pc, AppProperties app){
-        
-        licenseJsonObject.add("user", gson.toJsonTree(user));
-        licenseJsonObject.add("pc", gson.toJsonTree(pc));
-        licenseJsonObject.add("app", gson.toJsonTree(app));
-    }
+   
     
     public JsonObject currentDataToJSON(String jarAppFile, String email,String appName, String version) throws PTEID_Exception, IOException, FileNotFoundException, NoSuchAlgorithmException{
+        
+        LicenseData ld=new LicenseData(new UserCard(email), new ComputerProperties(), new AppProperties(appName,version));
         Gson gson = new Gson();
         
         JsonObject licenseJsonObject = new JsonObject();
-        licenseDataToJSON(gson, licenseJsonObject, new UserCard(email), new ComputerProperties(), new AppProperties(appName,version));
         
+        licenseJsonObject.add("data", gson.toJsonTree(ld));
         return licenseJsonObject;
     }
 
@@ -259,7 +281,7 @@ public class FileManager {
         String password;
         String aux;
         while (true){
-            System.out.println(email+"--> Introduza a password para a sua licença de utilização:");
+            System.out.println(email+" --> Introduza a password para a sua licença de utilização:");
             aux=sc.nextLine();
             if(aux.length()>5){
                 password=aux;
@@ -274,11 +296,11 @@ public class FileManager {
         AssymetricCipher aCipher = new AssymetricCipher();
         byte[] salt = aCipher.generateRandomSalt();
         
-        createFolder("privateKey");
+        createFolder("LicenseRep/privateKey");
         
         try {
-            writeToFile(salt, "privateKey/salt_"+email);
-            writeToFile(aCipher.protectPrivateKey(privateKey, password, salt), "privateKey/PBE_protectedPrivateKey.txt");
+            writeToFile(salt, "LicenseRep/privateKey/salt_"+email+".txt");
+            writeToFile(aCipher.protectPrivateKey(privateKey, password, salt), "LicenseRep/privateKey/PBE_PK_"+email+".txt");
         } catch (Exception e) {
             e.printStackTrace();
         }

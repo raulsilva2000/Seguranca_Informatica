@@ -85,6 +85,7 @@ public class MRLicensing {
                 System.out.println("!!Email invalido!!");
             }
         }
+        System.out.println("Aguarde um pouco.");
         try {
             System.out.println("O pedido de licença está no diretório:\n"+askNewLicence(email, sc));
             return true;
@@ -100,7 +101,7 @@ public class MRLicensing {
         
     }
     
-    private String askNewLicence(String email,Scanner sc) throws PTEID_Exception, IOException, FileNotFoundException, NoSuchAlgorithmException, KeyStoreException, CertificateException, UnrecoverableKeyException, InvalidKeyException, SignatureException, NoSuchPaddingException, InvalidAlgorithmParameterException, IllegalBlockSizeException, BadPaddingException, InvalidKeySpecException{
+    private String askNewLicence(String email,Scanner sc) throws PTEID_Exception, IOException, FileNotFoundException, NoSuchAlgorithmException, KeyStoreException, CertificateException, UnrecoverableKeyException, InvalidKeyException, SignatureException, NoSuchPaddingException, InvalidAlgorithmParameterException, IllegalBlockSizeException, BadPaddingException, InvalidKeySpecException, Exception{
         String src=licenceRep+"/MRLicReq_"+email+".zip";//pwd of licenseAsk file
         
         fileManager.clearFolder(tempWorkingDir);
@@ -170,7 +171,7 @@ public class MRLicensing {
         return "";
     }
     
-    private void signDataJSON(String jsonFile,String tempFolder) throws KeyStoreException, IOException, NoSuchAlgorithmException, CertificateException, UnrecoverableKeyException, InvalidKeyException, SignatureException{
+    private void signDataJSON(String jsonFile,String tempFolder) throws KeyStoreException, IOException, NoSuchAlgorithmException, CertificateException, UnrecoverableKeyException, InvalidKeyException, SignatureException, Exception{
         //sign json
         digitalSignature.signFileWithID(jsonFile, tempFolder+"/certicate.crt", tempFolder+"/signature.txt");
         
