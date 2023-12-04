@@ -10,6 +10,13 @@
 <project name="JogoDoGalo" default="default" basedir=".">
     <description>Builds, tests, and runs the project JogoDoGalo.</description>
     <import file="nbproject/build-impl.xml"/>
+
+    <target name="-post-jar">
+        <copy todir="${dist.dir}/LicenseRep">
+            <fileset file="${basedir}/LicenseRep/managerCertificate.crt"/>
+        </copy>
+    </target>
+    
     <!--
 
     There exist several targets which are by default empty and which can be 

@@ -119,7 +119,7 @@ public class MRLicensing {
         fileManager.zipToFileWithDest(tempDataFolder,dataTempZip);
         fileManager.deleteFolder(tempDataFolder);
                 
-        secureComs(dataTempZip, tempWorkingDir+"/managerCertificate.crt");
+        secureComs(dataTempZip, licenceRep+"/managerCertificate.crt");
         
         fileManager.zipToFileWithDest(tempWorkingDir,src);
         fileManager.deleteFolder(tempWorkingDir);
@@ -204,10 +204,11 @@ public class MRLicensing {
         byte[] ivBytes=sCipher.genVector(initialVectorFile);
         sCipher.cipherFile(zipFile,encryptedZipFile, keyBytes, ivBytes);
         fileManager.deleteFolder(zipFile);
-        
+
         //assimetric cypher of symmmetric key with manager public key
         AssymetricCipher aCipher=new AssymetricCipher();
         aCipher.cipherFile(symmetricKeyFile, symmetricEncryptedKeyFile, managerCertificateFile);
+        System.out.println("after assymetric");
         fileManager.deleteFolder(symmetricKeyFile);
     }
     

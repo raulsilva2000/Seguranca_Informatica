@@ -18,6 +18,9 @@ import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.SecureRandom;
+import java.security.cert.CertificateException;
+import java.security.cert.CertificateFactory;
+import java.security.cert.X509Certificate;
 import java.security.spec.EncodedKeySpec;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.KeySpec;
@@ -66,13 +69,17 @@ public class AssymetricCipher {
         return pair;
     }
     
-    public void cipherFile(String fileToCipher, String encryptedFile, String publicKeyFile) throws IOException, NoSuchAlgorithmException, InvalidKeySpecException, InvalidKeyException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException{
-        byte[] arrayBytesPublicKey = fileManager.readFileToBytes(publicKeyFile);
+    public void cipherFile(String fileToCipher, String encryptedFile, String certificateFile) throws IOException, NoSuchAlgorithmException, InvalidKeySpecException, InvalidKeyException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, CertificateException{
+        
+        FileInputStream fis = new FileInputStream(certificateFile);
+        CertificateFactory certificateFactory = CertificateFactory.getInstance("X.509");
+        X509Certificate certificate = (X509Certificate) certificateFactory.generateCertificate(fis);
+        fis.close();
+        
         byte[] arrayBytesWithContent = fileManager.readFileToBytes(fileToCipher);
         
-        KeyFactory keyFactory = KeyFactory.getInstance(algo);
-        EncodedKeySpec publicKeySpec = new X509EncodedKeySpec(arrayBytesPublicKey);
-        PublicKey publicKey = keyFactory.generatePublic(publicKeySpec);
+        
+        PublicKey publicKey = certificate.getPublicKey();
         
         Cipher encryptCipher = Cipher.getInstance(algo+"/"+cipherMode+"/"+padding);
         encryptCipher.init(Cipher.ENCRYPT_MODE, publicKey);

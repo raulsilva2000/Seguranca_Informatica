@@ -21,7 +21,7 @@ public class JogoDoGalo {
      */
     public static void main(String[] args) {
         // TODO code application logic here
-        System.out.println(System.getProperty("java.home"));
+        //System.out.println(System.getProperty("java.home"));
         MRLicensing mrlicensing=new MRLicensing();
         mrlicensing.init("Jogo do galo", "1.3.0");
         mrlicensing.startRegistration();

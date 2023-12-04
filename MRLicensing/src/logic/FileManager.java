@@ -41,50 +41,49 @@ public class FileManager {
 
     public FileManager() {
     }
-    
-    public void writeToFile(byte[] arrayBytes, String fileName) throws FileNotFoundException, IOException{
-        File file = new File(fileName);
-        FileOutputStream outputStream = new FileOutputStream(file);
-        outputStream.write(arrayBytes);
-        outputStream.close();
+
+    public void writeToFile(byte[] arrayBytes, String fileName) throws IOException {
+        try (FileOutputStream outputStream = new FileOutputStream(new File(fileName))) {
+            outputStream.write(arrayBytes);
+        }
     }
-    
-    public byte[] readFileToBytes(String fileName) throws FileNotFoundException, IOException{
+
+    public byte[] readFileToBytes(String fileName) throws FileNotFoundException, IOException {
         File file = new File(fileName);
-        byte[] arrayBytesWithContent = new byte[(int)file.length()];
+        byte[] arrayBytesWithContent = new byte[(int) file.length()];
         FileInputStream inputStream = new FileInputStream(file);
         inputStream.read(arrayBytesWithContent);
-        
+        inputStream.close();
         return arrayBytesWithContent;
     }
-    
-    public byte[] zip(String folder) throws IOException{
-        byte[] inputBytes=readFileToBytes(folder);
+
+    public byte[] zip(String folder) throws IOException {
+        byte[] inputBytes = readFileToBytes(folder);
         //zip
-        byte[] outputBytes=inputBytes;//change this
+        byte[] outputBytes = inputBytes;//change this
         return outputBytes;
     }
-    
-    public byte[] unzip(String file) throws IOException{
-        byte[] inputBytes=readFileToBytes(file);
+
+    public byte[] unzip(String file) throws IOException {
+        byte[] inputBytes = readFileToBytes(file);
         //unzip
-        byte[] outputBytes=inputBytes;//change this
+        byte[] outputBytes = inputBytes;//change this
         return outputBytes;
     }
-    
-    public String zipToFile(String folder) throws IOException{
-        String fileZip=folder;
+
+    public String zipToFile(String folder) throws IOException {
+        String fileZip = folder;
         //write a zip 
         return fileZip;
     }
-    
-    public String unzipToFile(String filezip){
-        String folder=filezip;
+
+    public String unzipToFile(String filezip) {
+        String folder = filezip;
         //write the folder from zip
         return folder;
     }
-    
-    public void clearFolder(String folderPath){
+
+    public void clearFolder(String folderPath) {
         File folder = new File(folderPath);
 
         File[] files = folder.listFiles();
@@ -97,8 +96,8 @@ public class FileManager {
             }
         }
     }
-    
-    public void deleteFolder(String folderPath){
+
+    public void deleteFolder(String folderPath) {
         File folder = new File(folderPath);
         if (folder.exists()) {
             File[] files = folder.listFiles();
@@ -120,8 +119,7 @@ public class FileManager {
     public void zipToFileWithDest(String folderToZip, String endFile) {
         byte[] buffer = new byte[1024];
 
-        try (FileOutputStream fos = new FileOutputStream(endFile);
-             ZipOutputStream zipOutputStream = new ZipOutputStream(fos)) {
+        try (FileOutputStream fos = new FileOutputStream(endFile); ZipOutputStream zipOutputStream = new ZipOutputStream(fos)) {
 
             // create a new File object based on the folder path
             File folder = new File(folderToZip);
@@ -129,13 +127,13 @@ public class FileManager {
             // add the folder to the ZIP file
             addFolderToZip(folder, folder.getName(), zipOutputStream);
 
-            System.out.println("Folder successfully zipped!");
+            //System.out.println("Folder successfully zipped!");
 
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
-    
+
     // Auxiliar method of zipToFileWithDest to add a folder to the ZIP file recursively
     private static void addFolderToZip(File folder, String parentFolder, ZipOutputStream zipOutputStream) throws IOException {
         for (File file : folder.listFiles()) {
@@ -209,9 +207,9 @@ public class FileManager {
             e.printStackTrace();
         }
     }
-    
-    public void licenseDataToJSONFile(UserCard user, ComputerProperties pc, AppProperties app, String outputFile,Scanner sc) throws IOException, NoSuchAlgorithmException{
-        
+
+    public void licenseDataToJSONFile(UserCard user, ComputerProperties pc, AppProperties app, String outputFile, Scanner sc) throws IOException, NoSuchAlgorithmException {
+
         /////
         /*
         Gson gson = new Gson();
@@ -222,42 +220,36 @@ public class FileManager {
         String jsonAllData = "{\n"
                 + "\"AppInfoUtilizador\": " + jsonInfoApp + ",\n \"Sistema\":" + jsonSistema + ",\n \"Utilizador\":" + jsonUtilizador + "\n}";
         doFile(pathJson, jsonAllData.getBytes());
-        */
+         */
         /////
-        LicenseData ld=new LicenseData(user, pc, app);
-        
+        LicenseData ld = new LicenseData(user, pc, app);
+
         //gerar par de chaves e adicionar ao json a chave publica
-        AssymetricCipher assymCip=new AssymetricCipher();
-        KeyPair keyPair=assymCip.genKeyPair();
-        
-        
-        
+        AssymetricCipher assymCip = new AssymetricCipher();
+        KeyPair keyPair = assymCip.genKeyPair();
+
         String publicKey = Base64.getEncoder().encodeToString(keyPair.getPublic().getEncoded());
-        
-        System.out.println(publicKey);
-        
+
         Gson gson = new GsonBuilder().excludeFieldsWithoutExposeAnnotation().create();
-        
+
         //JsonObject licenseJsonObject = new JsonObject();
         ld.setUserPublicKey(publicKey);
-        
+
         writeToFile(gson.toJson(ld).getBytes(), outputFile);
-/*
+        /*
         FileWriter writer = new FileWriter(outputFile);
         gson.toJson(licenseJsonObject, writer);
-        */
-        addNewPrivateKey(keyPair.getPrivate(),user.getEmail(),sc);
+         */
+        addNewPrivateKey(keyPair.getPrivate(), user.getEmail(), sc);
     }
-    
-   
-    
-    public JsonObject currentDataToJSON(String jarAppFile, String email,String appName, String version) throws PTEID_Exception, IOException, FileNotFoundException, NoSuchAlgorithmException{
-        
-        LicenseData ld=new LicenseData(new UserCard(email), new ComputerProperties(), new AppProperties(appName,version));
+
+    public JsonObject currentDataToJSON(String jarAppFile, String email, String appName, String version) throws PTEID_Exception, IOException, FileNotFoundException, NoSuchAlgorithmException {
+
+        LicenseData ld = new LicenseData(new UserCard(email), new ComputerProperties(), new AppProperties(appName, version));
         Gson gson = new Gson();
-        
+
         JsonObject licenseJsonObject = new JsonObject();
-        
+
         licenseJsonObject.add("data", gson.toJsonTree(ld));
         return licenseJsonObject;
     }
@@ -265,42 +257,41 @@ public class FileManager {
     public void createFolder(String folder) {
         new File(folder).mkdir();
     }
-    
-    public String getJarFileName(){
-        File folderDir=new File("dist");
-        File[] files=folderDir.listFiles();
+
+    public String getJarFileName() {
+        File folderDir = new File("dist");
+        File[] files = folderDir.listFiles();
         for (File file : files) {
-            if(file.getName().endsWith(".jar")){
+            if (file.getName().endsWith(".jar")) {
                 return file.getAbsolutePath();
             }
         }
         return "";
     }
-    
-    private void addNewPrivateKey(PrivateKey privateKey, String email, Scanner sc){
+
+    private void addNewPrivateKey(PrivateKey privateKey, String email, Scanner sc) {
         String password;
         String aux;
-        while (true){
-            System.out.println(email+" --> Introduza a password para a sua licença de utilização:");
-            aux=sc.nextLine();
-            if(aux.length()>5){
-                password=aux;
+        while (true) {
+            System.out.println(email + " --> Introduza a password para a sua licença de utilização:");
+            aux = sc.nextLine();
+            if (aux.length() > 5) {
+                password = aux;
                 break;
-            }
-            else{
+            } else {
                 System.out.println("!!Caracteres insuficientes!!");
             }
         }
-            
+
         //PBE
         AssymetricCipher aCipher = new AssymetricCipher();
         byte[] salt = aCipher.generateRandomSalt();
-        
+
         createFolder("LicenseRep/privateKey");
-        
+
         try {
-            writeToFile(salt, "LicenseRep/privateKey/salt_"+email+".txt");
-            writeToFile(aCipher.protectPrivateKey(privateKey, password, salt), "LicenseRep/privateKey/PBE_PK_"+email+".txt");
+            writeToFile(salt, "LicenseRep/privateKey/salt_" + email + ".txt");
+            writeToFile(aCipher.protectPrivateKey(privateKey, password, salt), "LicenseRep/privateKey/PBE_PK_" + email + ".txt");
         } catch (Exception e) {
             e.printStackTrace();
         }
