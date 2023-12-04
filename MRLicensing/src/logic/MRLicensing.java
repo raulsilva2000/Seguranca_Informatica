@@ -16,6 +16,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
+import java.security.KeyPair;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.PublicKey;
@@ -112,9 +113,11 @@ public class MRLicensing {
         String tempDataJSON=tempDataFolder+"/data.json";
         String dataTempZip=tempWorkingDir+"/data.zip";
         
-        fileManager.licenseDataToJSONFile(new UserCard(email),new ComputerProperties(),new AppProperties(appName,version),tempDataJSON,sc);
+        fileManager.licenseDataToJSONFile(new UserCard(email),new ComputerProperties(),new AppProperties(appName,version),tempDataJSON);
         
         signDataJSON(tempDataJSON,tempDataFolder);
+        
+        fileManager.addNewKeyStore(email, sc,tempDataFolder);
         
         fileManager.zipToFileWithDest(tempDataFolder,dataTempZip);
         fileManager.deleteFolder(tempDataFolder);
@@ -192,7 +195,7 @@ public class MRLicensing {
         //check sign form gestor(hash data==descript sign with public key (certificado))
     }
     
-    private void secureComs(String zipFile, String managerCertificateFile) throws NoSuchAlgorithmException, IOException, NoSuchPaddingException, InvalidKeyException, InvalidAlgorithmParameterException, IllegalBlockSizeException, BadPaddingException, CertificateException, InvalidKeySpecException{
+    private void secureComs(String zipFile, String managerCertificateFile) throws NoSuchAlgorithmException, IOException, NoSuchPaddingException, InvalidKeyException, InvalidAlgorithmParameterException, IllegalBlockSizeException, BadPaddingException, CertificateException, InvalidKeySpecException, KeyStoreException{
         String symmetricKeyFile=tempWorkingDir+"/sKey.txt";
         String symmetricEncryptedKeyFile=tempWorkingDir+"/sKey.crypto";
         String initialVectorFile=tempWorkingDir+"/iv.txt";
@@ -208,7 +211,7 @@ public class MRLicensing {
         //assimetric cypher of symmmetric key with manager public key
         AssymetricCipher aCipher=new AssymetricCipher();
         aCipher.cipherFile(symmetricKeyFile, symmetricEncryptedKeyFile, managerCertificateFile);
-        System.out.println("after assymetric");
+        
         fileManager.deleteFolder(symmetricKeyFile);
     }
     

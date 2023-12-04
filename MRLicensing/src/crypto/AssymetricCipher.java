@@ -4,36 +4,36 @@
  */
 package crypto;
 
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
+import java.math.BigInteger;
 import java.security.InvalidKeyException;
-import java.security.KeyFactory;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
-import java.security.SecureRandom;
+import java.security.Security;
+import java.security.UnrecoverableKeyException;
+import java.security.cert.Certificate;
+import java.security.cert.CertificateEncodingException;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
-import java.security.spec.EncodedKeySpec;
 import java.security.spec.InvalidKeySpecException;
-import java.security.spec.KeySpec;
-import java.security.spec.PKCS8EncodedKeySpec;
-import java.security.spec.X509EncodedKeySpec;
+import java.util.Date;
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
-import javax.crypto.SecretKeyFactory;
-import javax.crypto.spec.PBEKeySpec;
-import javax.crypto.spec.SecretKeySpec;
+import javax.security.auth.x500.X500Principal;
 import logic.FileManager;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
+import org.bouncycastle.x509.X509V3CertificateGenerator;
 
 /**
  *
@@ -45,21 +45,28 @@ public class AssymetricCipher {
     final String padding = "PKCS1Padding";
     final int keySize = 4096;
     FileManager fileManager;
+    private KeyStore keyStore;
     
-    public AssymetricCipher(){
+    public AssymetricCipher() throws KeyStoreException{
         fileManager =new FileManager();
+        keyStore = KeyStore.getInstance("JKS");
     }
     
-    public void genKey(String publicKeyFileName, String privateKeyFileName) throws NoSuchAlgorithmException, IOException{
-        KeyPair pair=genKeyPair();
-        PublicKey publicKey = pair.getPublic();
-        PrivateKey privateKey = pair.getPrivate();
+    public void genKeyStore(KeyPair keyPair, String keyStorePassword, String alias, String keyStoreFileName) throws NoSuchAlgorithmException, IOException, Exception{
+        // Generate a self-signed X.509 certificate
+        X509Certificate selfSignedCertificate = generateSelfSignedCertificate(keyPair);
+
+        // Create a keystore
+        keyStore.load(null, null); // Initialize an empty keystore
+
+        // Add the key pair to the keystore
+        char[] password = keyStorePassword.toCharArray(); // Change this password
+        keyStore.setKeyEntry(alias, keyPair.getPrivate(), password, new Certificate[]{selfSignedCertificate});
         
-        byte[] arrayBytesPublicKey = publicKey.getEncoded();
-        byte[] arrayBytesPrivateKey = privateKey.getEncoded();
-        
-        fileManager.writeToFile(arrayBytesPublicKey, publicKeyFileName);
-        fileManager.writeToFile(arrayBytesPrivateKey, privateKeyFileName);
+        // Save the keystore to a file
+        try (FileOutputStream fos = new FileOutputStream(keyStoreFileName + ".jks")) {
+            keyStore.store(fos, password);
+        }
     }
     
     public KeyPair genKeyPair() throws NoSuchAlgorithmException{
@@ -88,13 +95,11 @@ public class AssymetricCipher {
         fileManager.writeToFile(encryptedData, encryptedFile);
     }
     
-    public void decipherFile(String fileToDecipher, String decryptedFile, String privateKeyFile) throws IOException, NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, InvalidKeySpecException, IllegalBlockSizeException, BadPaddingException{
-        byte[] arrayBytesPrivateKey = fileManager.readFileToBytes(privateKeyFile);
+    public void decipherFile(String fileToDecipher, String decryptedFile, String keyStoreFile, String keyStorePassword, String alias) throws IOException, NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, InvalidKeySpecException, IllegalBlockSizeException, BadPaddingException, CertificateException, KeyStoreException, UnrecoverableKeyException{
+        this.keyStore.load(new FileInputStream(keyStoreFile), keyStorePassword.toCharArray());
         byte[] arrayBytesWithContent = fileManager.readFileToBytes(fileToDecipher);
-
-        KeyFactory keyFactory = KeyFactory.getInstance(algo);
-        EncodedKeySpec privateKeySpec = new PKCS8EncodedKeySpec(arrayBytesPrivateKey);
-        PrivateKey privateKey = keyFactory.generatePrivate(privateKeySpec);
+        
+        PrivateKey privateKey = (PrivateKey) keyStore.getKey(alias, keyStorePassword.toCharArray());
         
         Cipher decryptCipher = Cipher.getInstance(algo+"/"+cipherMode+"/"+padding);
         decryptCipher.init(Cipher.DECRYPT_MODE, privateKey);
@@ -103,60 +108,31 @@ public class AssymetricCipher {
         fileManager.writeToFile(decryptedData, decryptedFile);
     }
     
-    public byte[] generateRandomSalt(){
-        byte[] salt = new byte[16];
-        SecureRandom secureRandom = new SecureRandom();
-        secureRandom.nextBytes(salt);
-        return salt;
+    private X509Certificate generateSelfSignedCertificate(KeyPair keyPair) throws Exception {
+        // Use Bouncy Castle library for X.509 certificate generation
+        Security.addProvider(new BouncyCastleProvider());
+        
+        X509V3CertificateGenerator certGen = new X509V3CertificateGenerator();
+        X500Principal subjectName = new X500Principal("CN=SelfSignedCert");
+
+        certGen.setSerialNumber(BigInteger.valueOf(System.currentTimeMillis()));
+        certGen.setSubjectDN(subjectName);
+        certGen.setIssuerDN(subjectName); // Self-signed
+        certGen.setNotBefore(new Date(System.currentTimeMillis()));
+        certGen.setNotAfter(new Date(System.currentTimeMillis() + 10L * 365L * 24L * 60L * 60L * 1000L)); // Valid for 10 year
+        certGen.setPublicKey(keyPair.getPublic());
+        certGen.setSignatureAlgorithm("SHA256WithRSAEncryption");
+
+        return certGen.generate(keyPair.getPrivate(), "BC");
     }
-    
-    public byte[] protectPrivateKey(PrivateKey privateKey, String password, byte[] salt) {
-        try {
-            // Convert PrivateKey to PKCS#8 format
-            PKCS8EncodedKeySpec privateKeySpec = new PKCS8EncodedKeySpec(privateKey.getEncoded());
-            byte[] privateKeyBytes = privateKeySpec.getEncoded();
-            
-            // Generate a secret key from the password and salt
-            SecretKeySpec sks = generateSecretKey(password, salt);
-            
-            // Initialize the cipher with the secret key and encryption mode
-            Cipher cipher = Cipher.getInstance("AES");
-            cipher.init(Cipher.ENCRYPT_MODE, sks);
+    public void exportCertificateFromKeyStore(String keyStoreFile, String keyStorePassword, String alias, String certificateFileName) throws KeyStoreException, FileNotFoundException, IOException, CertificateEncodingException, NoSuchAlgorithmException, CertificateException{
+        FileInputStream fis = new FileInputStream(keyStoreFile + ".jks");
+        keyStore.load(fis, keyStorePassword.toCharArray());
 
-            // Encrypt the private key
-            byte[] encryptedPrivateKeyBytes = cipher.doFinal(privateKeyBytes);
-            
-            return encryptedPrivateKeyBytes;
-        } catch (Exception e) {
-            e.printStackTrace();
-            return null;
-        }
-    }
-    
-    public byte[] unprotectPrivateKey(byte[] encryptedPrivateKeyBytes, String password, byte[] salt) {
-        try {
-            // Generate a secret key from the password and salt
-            SecretKeySpec secretKey = generateSecretKey(password, salt);
+        // Get the certificate
+        Certificate cert = keyStore.getCertificate(alias);
 
-            // Initialize the cipher with the secret key and decryption mode
-            Cipher cipher = Cipher.getInstance("AES");
-            cipher.init(Cipher.DECRYPT_MODE, secretKey);
-
-            // Decrypt the private key
-            byte[] decryptedPrivateKeyBytes = cipher.doFinal(encryptedPrivateKeyBytes);
-            
-            return decryptedPrivateKeyBytes;
-        } catch (Exception e) {
-            e.printStackTrace();
-            return null;
-        }
-    }
-    
-    private static SecretKeySpec generateSecretKey(String password, byte[] salt) throws Exception {
-        KeySpec keySpec = new PBEKeySpec(password.toCharArray(), salt, 65536, 256);
-        SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256");
-        byte[] keyBytes = factory.generateSecret(keySpec).getEncoded();
-
-        return new SecretKeySpec(keyBytes, "AES");
+        // Save the certificate to a file
+        fileManager.writeToFile(cert.getEncoded(), certificateFileName + ".crt");
     }
 }

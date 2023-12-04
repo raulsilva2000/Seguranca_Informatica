@@ -17,19 +17,10 @@ public class LicenseData {
     public ComputerProperties pc;
     @Expose
     public AppProperties app;
-    @Expose
-    public String userPublicKey;
 
     public LicenseData(UserCard user, ComputerProperties pc, AppProperties app) {
         this.user = user;
         this.pc = pc;
         this.app = app;
-    }
-
-    public void setUserPublicKey(String userPublicKey) {
-        this.userPublicKey = userPublicKey;
-    }
-    
-    
-    
+    }    
 }

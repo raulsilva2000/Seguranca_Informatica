@@ -20,6 +20,7 @@ import dataCollecting.ComputerProperties;
 import dataCollecting.LicenseData;
 import java.io.FileWriter;
 import java.security.KeyPair;
+import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
@@ -207,39 +208,14 @@ public class FileManager {
         }
     }
 
-    public void licenseDataToJSONFile(UserCard user, ComputerProperties pc, AppProperties app, String outputFile, Scanner sc) throws IOException, NoSuchAlgorithmException {
+    public void licenseDataToJSONFile(UserCard user, ComputerProperties pc, AppProperties app, String outputFile) throws IOException, NoSuchAlgorithmException, KeyStoreException {
 
-        /////
-        /*
-        Gson gson = new Gson();
-        String jsonInfoApp = gson.toJson(infoAppUtilizador);
-        String jsonSistema = gson.toJson(sistema);
-        Gson gsonAux = new GsonBuilder().excludeFieldsWithoutExposeAnnotation().create();
-        String jsonUtilizador = gsonAux.toJson(utilizador);
-        String jsonAllData = "{\n"
-                + "\"AppInfoUtilizador\": " + jsonInfoApp + ",\n \"Sistema\":" + jsonSistema + ",\n \"Utilizador\":" + jsonUtilizador + "\n}";
-        doFile(pathJson, jsonAllData.getBytes());
-         */
-        /////
         LicenseData ld = new LicenseData(user, pc, app);
-
-        //gerar par de chaves e adicionar ao json a chave publica
-        AssymetricCipher assymCip = new AssymetricCipher();
-        KeyPair keyPair = assymCip.genKeyPair();
-
-        String publicKey = Base64.getEncoder().encodeToString(keyPair.getPublic().getEncoded());
 
         Gson gson = new GsonBuilder().excludeFieldsWithoutExposeAnnotation().create();
 
-        //JsonObject licenseJsonObject = new JsonObject();
-        ld.setUserPublicKey(publicKey);
-
         writeToFile(gson.toJson(ld).getBytes(), outputFile);
-        /*
-        FileWriter writer = new FileWriter(outputFile);
-        gson.toJson(licenseJsonObject, writer);
-         */
-        addNewPrivateKey(keyPair.getPrivate(), user.getEmail(), sc);
+
     }
 
     public JsonObject currentDataToJSON(String jarAppFile, String email, String appName, String version) throws PTEID_Exception, IOException, FileNotFoundException, NoSuchAlgorithmException {
@@ -262,7 +238,7 @@ public class FileManager {
         if (new File("dist").exists()) {
             folderDir = new File("dist");
         } else {
-            folderDir =new File(".");
+            folderDir = new File(".");
         }
         File[] files = folderDir.listFiles();
         for (File file : files) {
@@ -273,9 +249,12 @@ public class FileManager {
         return "";
     }
 
-    private void addNewPrivateKey(PrivateKey privateKey, String email, Scanner sc) {
+    public void addNewKeyStore(String email, Scanner sc, String dataFolder) throws KeyStoreException, NoSuchAlgorithmException, Exception {
         String password;
         String aux;
+        String alias="ReplacementUserKeyPair";
+        String keyStoreFileName="LicenseRep/keyStore/KeyStore_" + email;
+        String replacementUserCertificate=dataFolder+"/replacementUserCertificate";
         while (true) {
             System.out.println(email + " --> Introduza a password para a sua licença de utilização:");
             aux = sc.nextLine();
@@ -287,18 +266,13 @@ public class FileManager {
             }
         }
 
-        //PBE
         AssymetricCipher aCipher = new AssymetricCipher();
-        byte[] salt = aCipher.generateRandomSalt();
 
-        createFolder("LicenseRep/privateKey");
+        createFolder("LicenseRep/keyStore");
 
-        try {
-            writeToFile(salt, "LicenseRep/privateKey/salt_" + email + ".txt");
-            writeToFile(aCipher.protectPrivateKey(privateKey, password, salt), "LicenseRep/privateKey/PBE_PK_" + email + ".txt");
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        aCipher.genKeyStore(aCipher.genKeyPair(), password, alias, keyStoreFileName);
+        
+        aCipher.exportCertificateFromKeyStore(keyStoreFileName, password, alias, replacementUserCertificate);
 
     }
 }
