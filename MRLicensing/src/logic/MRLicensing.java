@@ -90,7 +90,7 @@ public class MRLicensing {
             System.out.println("O pedido de licença está no diretório:\n"+askNewLicence(email, sc));
             return true;
         } catch (Exception e) {
-            System.out.println(e.getMessage());
+            e.printStackTrace();
             fileManager.clearFolder(tempWorkingDir);
         }
         sc.close();

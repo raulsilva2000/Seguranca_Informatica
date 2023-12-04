@@ -128,7 +128,6 @@ public class FileManager {
             addFolderToZip(folder, folder.getName(), zipOutputStream);
 
             //System.out.println("Folder successfully zipped!");
-
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -259,7 +258,12 @@ public class FileManager {
     }
 
     public String getJarFileName() {
-        File folderDir = new File("dist");
+        File folderDir;
+        if (new File("dist").exists()) {
+            folderDir = new File("dist");
+        } else {
+            folderDir =new File(".");
+        }
         File[] files = folderDir.listFiles();
         for (File file : files) {
             if (file.getName().endsWith(".jar")) {
