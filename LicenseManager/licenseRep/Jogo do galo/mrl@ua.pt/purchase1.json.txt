@@ -1,0 +1,14 @@
+utilizador :
+nome
+nif
+mrl@ua.pt
+
+
+app :
+jogo do galo 
+
+
+
+
+maquina:
+ preencido
