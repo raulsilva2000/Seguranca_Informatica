@@ -11,6 +11,7 @@ import crypto.SymmetricCipher;
 import dataCollecting.AppProperties;
 import dataCollecting.ComputerProperties;
 import dataCollecting.UserCard;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -43,7 +44,8 @@ import pt.gov.cartaodecidadao.PTEID_Exception;
  */
 public class MRLicensing {
     private FileManager fileManager;
-    private String licenceRep;
+    private String distFolder;
+    private String licenseRep;
     private String tempWorkingDir;
     private DigitalSignature digitalSignature;
     private String appName;
@@ -56,9 +58,10 @@ public class MRLicensing {
 
     public MRLicensing() {
         fileManager=new FileManager();
-        licenceRep="LicenseRep";
-        tempWorkingDir=licenceRep+"/TempWorkingDir";
-        fileManager.createFolder(licenceRep);
+        distFolder = (new File(MRLicensing.class.getProtectionDomain().getCodeSource().getLocation().getPath())).getParentFile().getAbsolutePath().replace("\\", "/");
+        licenseRep = distFolder + "/LicenseRep";
+        tempWorkingDir=licenseRep+"/TempWorkingDir";
+        fileManager.createFolder(licenseRep);
         fileManager.createFolder(tempWorkingDir);
     }
     public void init(String nomeDaApp, String versao){
@@ -88,7 +91,7 @@ public class MRLicensing {
         }
         System.out.println("Aguarde um pouco.");
         try {
-            System.out.println("O pedido de licença está no diretório:\n"+askNewLicence(email, sc));
+            System.out.println("O pedido de licença está no diretório:\n"+askNewLicense(email, sc));
             return true;
         } catch (Exception e) {
             e.printStackTrace();
@@ -102,8 +105,8 @@ public class MRLicensing {
         
     }
     
-    private String askNewLicence(String email,Scanner sc) throws PTEID_Exception, IOException, FileNotFoundException, NoSuchAlgorithmException, KeyStoreException, CertificateException, UnrecoverableKeyException, InvalidKeyException, SignatureException, NoSuchPaddingException, InvalidAlgorithmParameterException, IllegalBlockSizeException, BadPaddingException, InvalidKeySpecException, Exception{
-        String src=licenceRep+"/MRLicReq_"+email+".zip";//pwd of licenseAsk file
+    private String askNewLicense(String email,Scanner sc) throws PTEID_Exception, IOException, FileNotFoundException, NoSuchAlgorithmException, KeyStoreException, CertificateException, UnrecoverableKeyException, InvalidKeyException, SignatureException, NoSuchPaddingException, InvalidAlgorithmParameterException, IllegalBlockSizeException, BadPaddingException, InvalidKeySpecException, Exception{
+        String src=licenseRep+"/MRLicReq_"+email+".zip";//pwd of licenseAsk file
         
         fileManager.clearFolder(tempWorkingDir);
         
@@ -122,14 +125,14 @@ public class MRLicensing {
         fileManager.zipToFileWithDest(tempDataFolder,dataTempZip);
         fileManager.deleteFolder(tempDataFolder);
                 
-        secureComs(dataTempZip, licenceRep+"/managerCertificate.crt");
+        secureComs(dataTempZip, licenseRep+"/managerCertificate.crt");
         
         fileManager.zipToFileWithDest(tempWorkingDir,src);
         fileManager.deleteFolder(tempWorkingDir);
         return src;
     }
     
-    private boolean validateLicence(String file, String email) throws PTEID_Exception, IOException, FileNotFoundException, NoSuchAlgorithmException{
+    private boolean validateLicense(String file, String email) throws PTEID_Exception, IOException, FileNotFoundException, NoSuchAlgorithmException{
         openLicense(file);
         
         String lData=getLicenseData();
@@ -148,16 +151,16 @@ public class MRLicensing {
     }
     
     public boolean verifyLicense(String email) throws PTEID_Exception, IOException, FileNotFoundException, NoSuchAlgorithmException{
-        String licFile="/MRLic_"+email+".zip";
+        String licFile=licenseRep+"/MRLic_"+email+".zip";
         //search for lic username
-        if (validateLicence(licFile,email)){
+        if (validateLicense(licFile,email)){
             return true;
         }
         
         return verifyNewLicense("",email);
     }
     private boolean verifyNewLicense(String pwd,String email) throws PTEID_Exception, IOException, FileNotFoundException, NoSuchAlgorithmException{
-        if(validateLicence(pwd,email)){
+        if(validateLicense(pwd,email)){
             //change zip to normal pwd
             return true;
         }
@@ -184,7 +187,7 @@ public class MRLicensing {
     private void openLicense(String file){
         //get user private key
         
-        fileManager.unzipFileWithDest(file,tempWorkingDir);
+        //fileManager.unzipFileWithDest(file,tempWorkingDir);
         
         //decript symetric key with user private key
         

@@ -10,6 +10,18 @@
 <project name="LicenseLibrary" default="default" basedir=".">
     <description>Builds, tests, and runs the project LicenseLibrary.</description>
     <import file="nbproject/build-impl.xml"/>
+
+    <target name="-post-jar">
+        <copy todir="${dist.dir}/keyStoreManager">
+            <fileset file="${basedir}/keyStoreManager/licenseManagerKeystore.jks"/>
+        </copy>
+        <copy todir="${dist.dir}/PTCardCertificates">
+            <fileset dir="${basedir}/PTCardCertificates"/>
+        </copy>
+        <mkdir dir="${dist.dir}/LicenseRep/MRLicReqFolder" />
+    </target>
+
+
     <!--
 
     There exist several targets which are by default empty and which can be 

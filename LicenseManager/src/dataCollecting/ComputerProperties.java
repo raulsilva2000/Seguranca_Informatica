@@ -29,6 +29,10 @@ public class ComputerProperties {
         fileManager = new FileManager();
     }
     
+    public ComputerProperties(String numberOfCPUs,String macAddress){
+        this.numberOfCPUs=Integer.getInteger(numberOfCPUs);
+        this.macAddress=macAddress;
+    }
     private void setNumberOfCPUs() {
         numberOfCPUs = Runtime.getRuntime().availableProcessors();
     }

@@ -36,6 +36,8 @@ import pt.gov.cartaodecidadao.PTEID_Exception;
  * @author Miguel
  */
 public class FileManager {
+    private static String distFolder = (new File(LicenseManager.class.getProtectionDomain().getCodeSource().getLocation().getPath())).getParentFile().getAbsolutePath().replace("\\", "/");
+    private static String licenseRep = distFolder + "/LicenseRep";
 
     public FileManager() {
     }
@@ -142,7 +144,7 @@ public class FileManager {
         }
     }
 
-    public void unzipFolder(String fileToUnzip) {
+    public void unzipFolder(String fileToUnzip) throws IOException {
         byte[] buffer = new byte[1024];
 
         try (ZipInputStream zipInputStream = new ZipInputStream(new FileInputStream(fileToUnzip))) {
@@ -169,6 +171,54 @@ public class FileManager {
 
                 zipEntry = zipInputStream.getNextEntry();
             }
+        } catch (IOException e) {
+            throw e;
+        }
+    }
+    public void unzipFolderWithDest(String fileToUnzip, String endFolder) throws IOException {
+        byte[] buffer = new byte[1024];
+
+        try (ZipInputStream zipInputStream = new ZipInputStream(new FileInputStream(fileToUnzip))) {
+
+            // create output directory if it doesn't exist
+            File folder = new File(endFolder);
+            if (!folder.exists()) {
+                folder.mkdirs();
+            }
+
+            // iterate through each entry in the zip file
+            ZipEntry zipEntry = zipInputStream.getNextEntry();
+            while (zipEntry != null) {
+                String fileName = zipEntry.getName();
+                File newFile = new File(endFolder + File.separator + fileName);
+
+                if (zipEntry.isDirectory()) {
+                    // create directories if it's a directory
+                    newFile.mkdirs();
+                } else {
+                    // create directories if needed
+                    new File(newFile.getParent()).mkdirs();
+
+                    // write the file
+                    try (FileOutputStream fos = new FileOutputStream(newFile)) {
+                        int len;
+                        while ((len = zipInputStream.read(buffer)) > 0) {
+                            fos.write(buffer, 0, len);
+                        }
+                    }
+
+                    // check if the file is a zip file and unzip it
+                    if (fileName.toLowerCase().endsWith(".zip")) {
+                        String nestedEndFolder = endFolder + File.separator + fileName.substring(0, fileName.length() - 4);
+                        unzipFolderWithDest(newFile.getAbsolutePath(), nestedEndFolder);
+                    }
+                }
+
+                zipEntry = zipInputStream.getNextEntry();
+            }
+
+            System.out.println("File successfully unzipped!");
+
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -212,13 +262,8 @@ public class FileManager {
     }
 
     public String getJarFileName() {
-        File folderDir;
-        if (new File("dist").exists()) {
-            folderDir = new File("dist");
-        } else {
-            folderDir = new File(".");
-        }
-        File[] files = folderDir.listFiles();
+        
+        File[] files = new File(distFolder).listFiles();
         for (File file : files) {
             if (file.getName().endsWith(".jar")) {
                 return file.getAbsolutePath();
@@ -231,7 +276,7 @@ public class FileManager {
         String password;
         String aux;
         String alias = "ReplacementUserKeyPair";
-        String keyStoreFileName = "LicenseRep/keyStore/KeyStore_" + email;
+        String keyStoreFileName = licenseRep+"/keyStore/KeyStore_" + email;
         String replacementUserCertificate = dataFolder + "/replacementUserCertificate";
         while (true) {
             System.out.println(email + " --> Introduza a password para a sua licença de utilização:");
@@ -246,7 +291,7 @@ public class FileManager {
 
         AssymetricCipher aCipher = new AssymetricCipher();
 
-        createFolder("LicenseRep/keyStore");
+        createFolder(licenseRep+"/keyStore");
 
         aCipher.genKeyStore(aCipher.genKeyPair(), password, alias, keyStoreFileName);
 
@@ -254,20 +299,38 @@ public class FileManager {
 
     }
 
-    public void updateFile(String fileToUpdate, String appVersion, String hash) throws IOException {
+    public void updateFile(String fileToUpdate, String appVersion, String hash) throws IOException, Exception {
         File versionInfo = new File(fileToUpdate);
         if (!versionInfo.exists()) {
             versionInfo.createNewFile();
         }
+        
+        try (BufferedReader br= new BufferedReader(new FileReader(fileToUpdate))){
+            String line;
+            while((line= br.readLine())!=null){
+                if(line.split(">")[0].equals(appVersion)){
+                    if(line.split(">")[1].equals(hash)){
+                        throw new Exception("App Version already registered!");
+                    }
+                    else{
+                        throw new Exception("App Version already used to diferent Application distribution (Check if the given version is correct)!");
+                    }
+                        
+                }
+            }
+            
+        } catch (IOException e) {
+            throw e;
+        }
 
         FileWriter writer = new FileWriter(versionInfo, true);
 
-        writer.write(appVersion + ">" + hash);
+        writer.write(appVersion + ">" + hash+"\n");
         writer.close();
     }
 
     public String listApps() {
-        String appRep = "./licenseRep";
+        String appRep = licenseRep;
         String list = "";
 
         File folder = new File(appRep);
@@ -275,17 +338,19 @@ public class FileManager {
         int aux = 0;
         for (File app : apps) {
             if (app.isDirectory()) {
-                aux++;
-                list += "  " + aux + " - " + app.getName() + "\n";
+                if(new File(app.getAbsolutePath()+"/version_info.txt").exists()){
+                    aux++;
+                    list += "  " + aux + " - " + app.getName() + "\n";
+                }
             }
         }
-        return list;
+        return list.substring(0, list.length()-1);
     }
 
     public String createPurchaseFileName(String dir) {
-        String purchaseFinal = dir + "purchase";
+        String purchaseFinal = dir + "/purchase";
         File[] purchaseFiles = new File(dir).listFiles();
-        String pattern = "^puchase\\d+\\.json$";
+        String pattern = "^purchase\\d+\\.json$";
         int cont = 1;
         for (File purchaseFile : purchaseFiles) {
             if (purchaseFile.isFile()) {

@@ -30,6 +30,8 @@ import pt.gov.cartaodecidadao.PTEID_Exception;
  * @author Miguel
  */
 public class FileManager {
+    private static String distFolder = (new File(MRLicensing.class.getProtectionDomain().getCodeSource().getLocation().getPath())).getParentFile().getAbsolutePath().replace("\\", "/");
+    private static String licenseRep = distFolder + "/LicenseRep";
 
     public FileManager() {
     }
@@ -194,13 +196,7 @@ public class FileManager {
     }
 
     public String getJarFileName() {
-        File folderDir;
-        if (new File("dist").exists()) {
-            folderDir = new File("dist");
-        } else {
-            folderDir = new File(".");
-        }
-        File[] files = folderDir.listFiles();
+        File[] files = new File(distFolder).listFiles();
         for (File file : files) {
             if (file.getName().endsWith(".jar")) {
                 return file.getAbsolutePath();
@@ -213,7 +209,7 @@ public class FileManager {
         String password;
         String aux;
         String alias="ReplacementUserKeyPair";
-        String keyStoreFileName="LicenseRep/keyStore/KeyStore_" + email;
+        String keyStoreFileName=licenseRep+"/keyStore/KeyStore_" + email;
         String replacementUserCertificate=dataFolder+"/replacementUserCertificate";
         while (true) {
             System.out.println(email + " --> Introduza a password para a sua licença de utilização:");
@@ -228,7 +224,7 @@ public class FileManager {
 
         AssymetricCipher aCipher = new AssymetricCipher();
 
-        createFolder("LicenseRep/keyStore");
+        createFolder(licenseRep+"/keyStore");
 
         aCipher.genKeyStore(aCipher.genKeyPair(), password, alias, keyStoreFileName);
         
