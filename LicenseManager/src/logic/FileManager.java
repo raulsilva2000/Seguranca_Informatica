@@ -55,20 +55,6 @@ public class FileManager {
         return arrayBytesWithContent;
     }
 
-    public byte[] zip(String folder) throws IOException {
-        byte[] inputBytes = readFileToBytes(folder);
-        //zip
-        byte[] outputBytes = inputBytes;//change this
-        return outputBytes;
-    }
-
-    public byte[] unzip(String file) throws IOException {
-        byte[] inputBytes = readFileToBytes(file);
-        //unzip
-        byte[] outputBytes = inputBytes;//change this
-        return outputBytes;
-    }
-
     public String zipToFile(String folder) throws IOException {
         String fileZip = folder;
         //write a zip 
