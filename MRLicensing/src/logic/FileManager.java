@@ -49,20 +49,6 @@ public class FileManager {
         return arrayBytesWithContent;
     }
 
-    public byte[] zip(String folder) throws IOException {
-        byte[] inputBytes = readFileToBytes(folder);
-        //zip
-        byte[] outputBytes = inputBytes;//change this
-        return outputBytes;
-    }
-
-    public byte[] unzip(String file) throws IOException {
-        byte[] inputBytes = readFileToBytes(file);
-        //unzip
-        byte[] outputBytes = inputBytes;//change this
-        return outputBytes;
-    }
-
     public String zipToFile(String folder) throws IOException {
         String fileZip = folder;
         //write a zip 
@@ -150,50 +136,33 @@ public class FileManager {
         }
     }
 
-    public void unzipFileWithDest(String fileToUnzip, String endFolder) {
+    public void unzipFolder(String fileToUnzip) {
         byte[] buffer = new byte[1024];
 
         try (ZipInputStream zipInputStream = new ZipInputStream(new FileInputStream(fileToUnzip))) {
 
-            // create output directory if it doesn't exist
-            File folder = new File(endFolder);
-            if (!folder.exists()) {
-                folder.mkdirs();
-            }
+            File zipFile = new File(fileToUnzip);
+            File parenDirectory = zipFile.getParentFile();
 
             // iterate through each entry in the zip file
             ZipEntry zipEntry = zipInputStream.getNextEntry();
             while (zipEntry != null) {
                 String fileName = zipEntry.getName();
-                File newFile = new File(endFolder + File.separator + fileName);
+                File newFile = new File(parenDirectory, fileName);
 
-                if (zipEntry.isDirectory()) {
-                    // create directories if it's a directory
-                    newFile.mkdirs();
-                } else {
-                    // create directories if needed
-                    new File(newFile.getParent()).mkdirs();
+                // create directories if needed
+                new File(newFile.getParent()).mkdirs();
 
-                    // write the file
-                    try (FileOutputStream fos = new FileOutputStream(newFile)) {
-                        int len;
-                        while ((len = zipInputStream.read(buffer)) > 0) {
-                            fos.write(buffer, 0, len);
-                        }
-                    }
-
-                    // check if the file is a zip file and unzip it
-                    if (fileName.toLowerCase().endsWith(".zip")) {
-                        String nestedEndFolder = endFolder + File.separator + fileName.substring(0, fileName.length() - 4);
-                        unzipFileWithDest(newFile.getAbsolutePath(), nestedEndFolder);
+                // write the file
+                try (FileOutputStream fos = new FileOutputStream(newFile)) {
+                    int len;
+                    while ((len = zipInputStream.read(buffer)) > 0) {
+                        fos.write(buffer, 0, len);
                     }
                 }
 
                 zipEntry = zipInputStream.getNextEntry();
             }
-
-            System.out.println("File successfully unzipped!");
-
         } catch (IOException e) {
             e.printStackTrace();
         }
