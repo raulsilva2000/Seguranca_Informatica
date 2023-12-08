@@ -70,7 +70,7 @@ public class LicenseManager {
                 }
                 Scanner sc = new Scanner(System.in);
                 String appChosen = "";
-                String appDir = "licenseRep";
+                String appDir = "LicenseRep";
                 String userRep = "";
                 do {
                     //print app list
@@ -112,7 +112,7 @@ public class LicenseManager {
                     printDefaultHelp();
                     break;
                 }
-                String licenseRep = "./licenseRep";
+                String licenseRep = "./LicenseRep";
                 String licenseRequest = licenseRep;
                 if (args.length == 2) {
                     licenseRequest += "/" + args[1];

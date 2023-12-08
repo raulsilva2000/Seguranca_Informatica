@@ -10,6 +10,120 @@
 <project name="MRLicensing" default="default" basedir=".">
     <description>Builds, tests, and runs the project MRLicensing.</description>
     <import file="nbproject/build-impl.xml"/>
+    <target name="-post-jar" depends="update-readme">
+        <copy todir="${dist.dir}/LicenseRep">
+            <fileset file="${basedir}/LicenseRep/managerCertificate.crt"/>
+        </copy>
+    </target>
+    <!-- New target for appending text to README.md -->
+    <target name="update-readme">
+        <!-- Text to be appended to README.md -->
+        <echo file="${dist.dir}/README.txt" append="true">
+            <![CDATA[
+
+            ============================================================================
+            ## Instructions to integrate MRLicensing Library into your Application ##
+            ============================================================================
+            *current directory should be the distribuition of the MRLicensing
+            *in addition to the current folder you must have the distribuition folder of the LicenseManager, necessary to manager User Licenses and Regist Applications
+            (Advised steps, Based on NetBeans IDE and Apache Ant java compiler)
+
+                1-In current Folder, copy MRLicensing.jar to lib Folder.
+
+                2-Copy lib Folder to Your Project, inside src Folder ("currentDir"\lib   ---->   "YourProject"\src\lib)
+
+                3-In your IDE, in Your Project add all libraries, using "Add JAR/Folder..." option (right click on Libraries Folder)
+                *repeat step for each library (jar file)
+                
+
+                4-Copy LicenseRep Folder to Your Project ("currentDir"\LicenseRep   ---->    "YourProject"\LicenseRep)
+                *LicenseRep must contain managerCertificate.crt ("YourProject"\LicenseRep\managerCertificate.crt)
+    
+                5-Edit "YourProject"\build.xml , add code between "Start of edit" and "End of edit" comments (following code is a simple example of build.xml):
+
+                <?xml version="1.0" encoding="UTF-8"?>
+                <project name="YourProject" default="default" basedir=".">
+                    <description>Builds, tests, and runs the project YourProject.</description>
+                    <import file="nbproject/build-impl.xml"/>
+                    <!-- Start of edit  -->
+                    <target name="-post-jar">
+                        <copy todir="${dist.dir}/LicenseRep">
+                            <fileset file="${basedir}/LicenseRep/managerCertificate.crt"/>
+                        </copy>
+                    </target>
+                    <!--  End of edit -->
+                </project>
+
+                6-Make sure that you are copying the lib Folder to your Distribuition when executing the build project
+                *right click Your Project, select Properties->(Categories:->)Build->Packaging, make sure that "Copy Dependent Libraries" option is selected, then Ok button
+
+                7-How to use MRLicensing in your app code (replace: YourProject to the name of your Project and #.#.# to the version)
+                
+                    a) initialization:
+                        In mainClass:
+                        import logic.MRLicensing;
+                            In start of main():
+                            MRLicensing mrlicensing=new MRLicensing();
+                            mrlicensing.init("YourProject", "#.#.#");
+
+                    b) make your code, license dependent, using ".isRegistered()", example:
+                        if(mrlicensing.isRegistered()){
+                            #your code here
+                        }
+                        else{
+                            #inform missing valid License
+                            #or do step c)  
+                        }
+
+                    c) Implement Requirement, request new license, using ".startRegistration()":
+                        if(mrlicensing.startRegistration()){
+                            #sucess-->License Request generated in LicenseRep Folder
+                        }
+
+                8- Regist your Application in the License Manager (for info: java -jar "LicenseManager.jar" help):
+                    a) After Ending the development of the code to be distibuited, clean and build.
+
+                    b) run command (replace: YourProject to the name of your Project, #.#.# to the version and path.of.project.jar to the Your Project .jar file Path):
+                        java -jar "LicenseManager.jar" add-app YourProject #.#.# "path.of.project.jar"
+
+            ============================================================================
+                    ##      End of Instructions about MRLicensing Library   ##
+            ============================================================================ 
+
+            ============================================================================
+                        ##      Instructions to Manage User Licenses      ##
+            ============================================================================
+            *To use LicenseManager, should be in distribuition folder of LicenseManager and run appropriate commands
+            *To see available commands and details, run : java -jar "LicenseManager.jar" help
+
+            When a user wants to use your application, he must purchase the application directly to you and provide the following data:
+                -which registered application he wants to purchase
+                -a email to be associated with the User
+                -the Portuguese Citizen Card to be inserted in the Smart Card Reader
+            Then use the command(and follow the intructions): java -jar "LicenseManager.jar" purchase 
+
+
+            When a user is asking for a License, he must provide the License Request generated by the MRLicensing library integrated by a distribuition of your application
+            License Request must me named like this: MRLicReq_"email@of.user".zip
+            Steps to generate User License:
+                Choose one method:
+                a) Copy the License Request to the folder LicenseRep (delete any other License Request in LicenseRep folder) and run command:
+                    java -jar "LicenseManager.jar" generate-license
+
+                or
+                
+                b) run command (replace: path.to.new.license.request.zip to the License Request path in the computer):
+                    java -jar "LicenseManager.jar" generate-license "path.to.new.license.request.zip"
+
+
+            Then send to the User the License (MRLic_"email@of.user".zip) generated at LicenseRep/"gameName"/"email@of.user"/
+
+            ============================================================================
+                    ##    End of Instructions about Manage User Licenses     ##
+            ============================================================================
+            ]]>
+        </echo>
+    </target>
     <!--
 
     There exist several targets which are by default empty and which can be 
