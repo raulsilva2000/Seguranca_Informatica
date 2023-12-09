@@ -84,18 +84,16 @@ public class CertificateValidity {
         File trustAnchorFolder = new File(ptCardCertFolder + "/govTrustCertificate/");
         File[] listOfTrustAnchorFiles = trustAnchorFolder.listFiles();
 
-        Set<TrustAnchor> trustAnchors = new HashSet<>();
-
         for (File file : listOfTrustAnchorFiles) {
             FileInputStream fis = new FileInputStream(file);
             X509Certificate trustAnchorCertificate = (X509Certificate) certificateFactory.generateCertificate(fis);
-            trustAnchors.add(new TrustAnchor(trustAnchorCertificate, null));
+            trustAnchorKeyStore.setCertificateEntry(trustAnchorCertificate.getSubjectX500Principal().getName(), trustAnchorCertificate);
             fis.close();
         }
 
         //Define the parameters to build the certification path and provide the Trust anchor certificates (trustAnchors) and the end-user certificate (cs)
         //certificates (trustAnchors) and the end user certificate (cs)
-        PKIXBuilderParameters pkixBParams = new PKIXBuilderParameters(trustAnchors, cs);
+        PKIXBuilderParameters pkixBParams = new PKIXBuilderParameters(trustAnchorKeyStore, cs);
         pkixBParams.setRevocationEnabled(false); //No revocation check
         
         // Get Intermediate Certificates
