@@ -80,17 +80,16 @@ public class LicenseManager {
                     printDefaultHelp();
                     break;
                 }
-                Scanner sc = new Scanner(System.in);
+                Scanner sc = new Scanner(System.in);;
                 String appChosen = "";
-                String appDir = licenseRep;
+                String appDir;
                 String userRep = "";
                 do {
                     //print app list
                     System.out.println("Introduza o nome uma das seguintes Aplicacoes:\n"+fileManager.listApps());
                     //chose app
-                    System.out.flush();
                     appChosen = sc.nextLine();
-                    appDir += "/" + appChosen;
+                    appDir = licenseRep + "/" + appChosen;
                 } while (!(new File(appDir).exists() && new File(appDir).isDirectory() && new File(appDir + "/version_info.txt").exists()));
 
                 //add user info (with email)
