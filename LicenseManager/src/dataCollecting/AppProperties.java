@@ -53,6 +53,9 @@ public class AppProperties {
         byte[] encodedhash = md.digest(arrayBytesWithContent);
         hash = new BigInteger(1, encodedhash).toString(16);
     }
+    public void injectHash(String hash){
+        this.hash=hash;
+    }
 
     public String getName() {
         return name;

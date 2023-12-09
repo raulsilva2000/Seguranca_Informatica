@@ -108,4 +108,18 @@ public class DigitalSignature {
         
         return isCorrect;
     }
+    public void signFile(String fileToSign, String outputSignatureFile, PrivateKey privatekey) throws KeyStoreException, IOException, NoSuchAlgorithmException, CertificateException, UnrecoverableKeyException, InvalidKeyException, SignatureException{
+        
+        //Read fileToSign
+        byte[] fileToSignBytes = fileManager.readFileToBytes(fileToSign);
+        
+        Signature signature = Signature.getInstance("SHA256withRSA");
+
+        signature.initSign(privatekey);
+        signature.update(fileToSignBytes);
+
+        byte[] signatureBytes = signature.sign();
+        
+        fileManager.writeToFile(signatureBytes, outputSignatureFile);
+    }
 }

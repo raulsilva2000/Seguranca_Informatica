@@ -73,6 +73,12 @@ public class AssymetricCipher {
             keyStore.store(fos, password);
         }
     }
+    public PrivateKey getPrivateKeyFromKeyStore(String keyStorePath,String password,String allias) throws FileNotFoundException, IOException, NoSuchAlgorithmException, CertificateException, KeyStoreException, UnrecoverableKeyException{
+        FileInputStream fis=new FileInputStream(keyStorePath);
+        keyStore.load(fis,password.toCharArray());
+        PrivateKey privateKey=(PrivateKey)keyStore.getKey(allias, password.toCharArray());
+        return privateKey;
+    }
     
     public void exportCertificateFromKeyStore(String keyStoreFile, String keyStorePassword, String alias, String certificateFileName) throws KeyStoreException, FileNotFoundException, IOException, CertificateEncodingException, NoSuchAlgorithmException, CertificateException{
         FileInputStream fis = new FileInputStream(keyStoreFile + ".jks");

@@ -36,6 +36,7 @@ import pt.gov.cartaodecidadao.PTEID_Exception;
  * @author Miguel
  */
 public class FileManager {
+
     private static String distFolder = (new File(LicenseManager.class.getProtectionDomain().getCodeSource().getLocation().getPath())).getParentFile().getAbsolutePath().replace("\\", "/");
     private static String licenseRep = distFolder + "/LicenseRep";
 
@@ -175,6 +176,7 @@ public class FileManager {
             throw e;
         }
     }
+
     public void unzipFolderWithDest(String fileToUnzip, String endFolder) throws IOException {
         byte[] buffer = new byte[1024];
 
@@ -217,7 +219,6 @@ public class FileManager {
                 zipEntry = zipInputStream.getNextEntry();
             }
 
-
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -232,16 +233,16 @@ public class FileManager {
         writeToFile(gson.toJson(ld).getBytes(), outputFile);
 
     }
-    
-    public JsonObject JSONFiletoJSONObj(String jsonDataFile) throws IOException{
-        FileReader reader=new FileReader(jsonDataFile);
-        
+
+    public JsonObject JSONFiletoJSONObj(String jsonDataFile) throws IOException {
+        FileReader reader = new FileReader(jsonDataFile);
+
         return new Gson().fromJson(reader, JsonObject.class);
     }
-    
-    public LicenseData JSONFiletoLicenseData(String jsonDataFile) throws IOException{
-        FileReader reader=new FileReader(jsonDataFile);
-        
+
+    public LicenseData JSONFiletoLicenseData(String jsonDataFile) throws IOException {
+        FileReader reader = new FileReader(jsonDataFile);
+
         return new Gson().fromJson(reader, LicenseData.class);
     }
 
@@ -261,7 +262,7 @@ public class FileManager {
     }
 
     public String getJarFileName() {
-        
+
         File[] files = new File(distFolder).listFiles();
         for (File file : files) {
             if (file.getName().endsWith(".jar")) {
@@ -275,7 +276,7 @@ public class FileManager {
         String password;
         String aux;
         String alias = "ReplacementUserKeyPair";
-        String keyStoreFileName = licenseRep+"/keyStore/KeyStore_" + email;
+        String keyStoreFileName = licenseRep + "/keyStore/KeyStore_" + email;
         String replacementUserCertificate = dataFolder + "/replacementUserCertificate";
         while (true) {
             System.out.println(email + " --> Introduza a password para a sua licença de utilização:");
@@ -290,7 +291,7 @@ public class FileManager {
 
         AssymetricCipher aCipher = new AssymetricCipher();
 
-        createFolder(licenseRep+"/keyStore");
+        createFolder(licenseRep + "/keyStore");
 
         aCipher.genKeyStore(aCipher.genKeyPair(), password, alias, keyStoreFileName);
 
@@ -303,28 +304,27 @@ public class FileManager {
         if (!versionInfo.exists()) {
             versionInfo.createNewFile();
         }
-        
-        try (BufferedReader br= new BufferedReader(new FileReader(fileToUpdate))){
+
+        try (BufferedReader br = new BufferedReader(new FileReader(fileToUpdate))) {
             String line;
-            while((line= br.readLine())!=null){
-                if(line.split(">")[0].equals(appVersion)){
-                    if(line.split(">")[1].equals(hash)){
+            while ((line = br.readLine()) != null) {
+                if (line.split(">")[0].equals(appVersion)) {
+                    if (line.split(">")[1].equals(hash)) {
                         throw new Exception("App Version already registered!");
-                    }
-                    else{
+                    } else {
                         throw new Exception("App Version already used to diferent Application distribution (Check if the given version is correct)!");
                     }
-                        
+
                 }
             }
-            
+
         } catch (IOException e) {
             throw e;
         }
 
         FileWriter writer = new FileWriter(versionInfo, true);
 
-        writer.write(appVersion + ">" + hash+"\n");
+        writer.write(appVersion + ">" + hash + "\n");
         writer.close();
     }
 
@@ -337,7 +337,7 @@ public class FileManager {
         int aux = 0;
         for (File app : apps) {
             if (app.isDirectory()) {
-                if(new File(app.getAbsolutePath()+"/version_info.txt").exists()){
+                if (new File(app.getAbsolutePath() + "/version_info.txt").exists()) {
                     aux++;
                     list += "  " + aux + " - " + app.getName() + "\n";
                 }
@@ -373,14 +373,14 @@ public class FileManager {
     }
 
     public boolean checkExistingLine(String file, String searchLine) throws IOException {
-        try (BufferedReader br= new BufferedReader(new FileReader(file))){
+        try (BufferedReader br = new BufferedReader(new FileReader(file))) {
             String line;
-            while((line= br.readLine())!=null){
-                if(line.contentEquals(searchLine)){
+            while ((line = br.readLine()) != null) {
+                if (line.contentEquals(searchLine)) {
                     return true;
                 }
             }
-            
+
         } catch (IOException e) {
             throw e;
         }
@@ -388,15 +388,23 @@ public class FileManager {
     }
 
     public ArrayList<File> getAllJSONspurchases(String folder) throws IOException {
-        ArrayList<File> lcArray=new ArrayList<>();
+        ArrayList<File> lcArray = new ArrayList<>();
         for (File json : new File(folder).listFiles()) {
-            String pattern="^purchase\\d+\\.json$";
-            Pattern regex=Pattern.compile(pattern);
-            Matcher matcher=regex.matcher(json.getName());
-            if(matcher.matches()){
+            String pattern = "^purchase\\d+\\.json$";
+            Pattern regex = Pattern.compile(pattern);
+            Matcher matcher = regex.matcher(json.getName());
+            if (matcher.matches()) {
                 lcArray.add(json);
             }
         }
         return lcArray;
+    }
+
+    void licenseDataToJSONFileWithValidity(UserCard user, ComputerProperties pc, AppProperties app, String validity, String outputFile) throws IOException {
+        LicenseData ld = new LicenseData(user, pc, app);
+        ld.setValidity(validity);
+        Gson gson = new GsonBuilder().excludeFieldsWithoutExposeAnnotation().create();
+
+        writeToFile(gson.toJson(ld).getBytes(), outputFile);
     }
 }
