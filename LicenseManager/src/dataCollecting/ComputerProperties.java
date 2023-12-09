@@ -29,8 +29,8 @@ public class ComputerProperties {
         fileManager = new FileManager();
     }
     
-    public ComputerProperties(String numberOfCPUs,String macAddress){
-        this.numberOfCPUs=Integer.getInteger(numberOfCPUs);
+    public ComputerProperties(int numberOfCPUs,String macAddress){
+        this.numberOfCPUs=numberOfCPUs;
         this.macAddress=macAddress;
     }
     private void setNumberOfCPUs() {

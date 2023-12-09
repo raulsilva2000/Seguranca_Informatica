@@ -18,6 +18,8 @@ import java.io.IOException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Scanner;
 import java.util.logging.Level;
@@ -80,18 +82,20 @@ public class LicenseManager {
                     printDefaultHelp();
                     break;
                 }
-                Scanner sc = new Scanner(System.in);;
+                Scanner sc = new Scanner(System.in);
                 String appChosen = "";
                 String appDir;
                 String userRep = "";
                 do {
                     //print app list
-                    System.out.println("Introduza o nome uma das seguintes Aplicacoes:\n"+fileManager.listApps());
+                    System.out.println("Introduza o nome uma das seguintes Aplicacoes:");
+                    System.out.println(fileManager.listApps());
                     //chose app
                     appChosen = sc.nextLine();
-                    appDir = licenseRep + "/" + appChosen;
-                } while (!(new File(appDir).exists() && new File(appDir).isDirectory() && new File(appDir + "/version_info.txt").exists()));
-
+                    appChosen = licenseRep + "/" + appChosen;
+                } while (!(new File(appChosen).exists() && new File(appChosen).isDirectory() && new File(appChosen + "/version_info.txt").exists()));
+                appDir=appChosen;
+                
                 //add user info (with email)
                 String email;
                 String aux;
@@ -124,29 +128,46 @@ public class LicenseManager {
                 String purchaseFileDir = fileManager.createPurchaseFileName(userRep);
                  {
                     try {
-                        fileManager.purchaseDataToJSONFile(userCard, new AppProperties(appChosen), purchaseFileDir);
+                        fileManager.purchaseDataToJSONFile(userCard, new AppProperties(new File(appDir).getName()), purchaseFileDir);
                     } catch (Exception ex) {
                         fileManager.deleteFolder(purchaseFileDir);
                         System.out.println(ex.getMessage());
+                        break;
                     }
                 }
-
+                System.out.println("Registo da compra adicionado com sucesso!");
                 break;
 
             case "generate-license":
-                if (args.length > 2) {
+                if (args.length > 3 ||args.length<2) {
                     printDefaultHelp();
                     break;
                 }
-
+                String validity=args[1];
+                DateTimeFormatter dateForm=DateTimeFormatter.ofPattern("dd/MM/yyyy");
+                try {
+                    LocalDate parsedDate=LocalDate.parse(validity, dateForm);
+                    LocalDate currentDate=LocalDate.now();
+                    if(!parsedDate.isAfter(currentDate)){
+                        System.out.println("Validade da licenca com data invalida. Tera de ser posterior a "+currentDate.format(dateForm));
+                        break;
+                    }
+                } catch (Exception e) {
+                    System.out.println(e.getMessage());
+                    System.out.println("Data da validade da licenca tem de ter o formato dd/MM/yyyy");
+                    break;
+                }
                 String licenseRequest = licenseRep + "/MRLicReqFolder";
                 String licenseRequestZip = licenseRequest;
                 String lrTempWorkingDir = licenseRequest + "/TempWorkingDir";
-                if (args.length == 2) {
-                    licenseRequestZip = args[1];
+                if (args.length == 3) {
+                    licenseRequestZip = args[2];
                     if (!new File(licenseRequestZip).exists()) {
                         System.out.println("Nao existe o pedido de licenca no diretorio especificado!");
                         break;
+                    }
+                    else{
+                        licenseRequestZip=new File(licenseRequestZip).getAbsolutePath();
                     }
                 } else {
                     File[] files = new File(licenseRequestZip).listFiles();
@@ -172,14 +193,13 @@ public class LicenseManager {
                     fileManager.unzipFolder(dataZip);
 
                     //check signature
-                    String dataDir = lrTempWorkingDir + "data";
+                    String dataDir = lrTempWorkingDir + "/data";
                     String certificate = dataDir + "/certificate.crt";
                     String signature = dataDir + "/signature.txt";
-                    String govTrustAnchor = distFolder+"/PTCardCertificates/govTrustCertificate/ECRaizEstado002.crt";
-                    String intermediateCertificatesFolder = distFolder+"/PTCardCertificates/intermediateCertificates";
+                    String ptCardCertFolder = distFolder+"/PTCardCertificates";
 
                     CertificateValidity certitificateValidity = new CertificateValidity(certificate);
-                    if (!certitificateValidity.isCertificateValid(govTrustAnchor, intermediateCertificatesFolder)) {
+                    if (!certitificateValidity.isCertificateValid(ptCardCertFolder)) {
                         throw new Exception("Certificado de Utilizador do Cartao de Cidadao invalido");
                     }
 
@@ -204,8 +224,8 @@ public class LicenseManager {
                     //ver se algum match
                     File purchaseFound = null;
                     for (File purchase : purchases) {
-                        JsonObject jsonPur = fileManager.JSONFiletoJSONObj(purchase.getAbsolutePath());
-                        if (jsonPur.getAsJsonObject("user").getAsString().equals(licenseReqData.getAsJsonObject("user").getAsString())) {
+                        JsonObject jsonPur = fileManager.JSONFiletoJSONObj(purchase.getAbsolutePath());                      
+                        if (jsonPur.getAsJsonObject("user").toString().equals(licenseReqData.getAsJsonObject("user").toString())) {
                             if (jsonPur.has("pc")) {
                                 if (tolerable(jsonPur.getAsJsonObject("pc"), licenseReqData.getAsJsonObject("pc"), 1)) {
                                     purchaseFound = purchase;
@@ -218,12 +238,11 @@ public class LicenseManager {
                     if (purchaseFound == null) {
 
                         for (File purchase : purchases) {
-
                             LicenseData licenseData = fileManager.JSONFiletoLicenseData(purchase.getAbsolutePath());
                             if (licenseData.pc == null) {
 
                                 try {
-                                    fileManager.licenseDataToJSONFile(licenseData.user, new ComputerProperties(licenseReqData.getAsJsonObject("numberOfCPUs").getAsString(), licenseReqData.getAsJsonObject("macAddress").getAsString()), licenseData.app, purchase.getAbsolutePath());
+                                    fileManager.licenseDataToJSONFile(licenseData.user, new ComputerProperties(licenseReqData.getAsJsonObject("pc").get("numberOfCPUs").getAsInt(), licenseReqData.getAsJsonObject("pc").get("macAddress").getAsString()), licenseData.app, purchase.getAbsolutePath());
 
                                     purchaseFound = new File(purchase.getAbsolutePath());
 
@@ -247,7 +266,7 @@ public class LicenseManager {
                 //criar licenca e colocar na pasta do user
                 //criar tempWorkingDir in userFolder
                 //criar data(Folder) in tempworkingDir
-                //criar data.json com dados do LicReq de user e app, mas com pc de purchase.json in data(Folder)
+                //criar data.json com dados do LicReq de user e app e validity, mas com pc de purchase.json in data(Folder)
                 //sign data.json com managerPrivateKey
                 //write signature file in data(folder)
                 //zip data(Folder) to data.zip

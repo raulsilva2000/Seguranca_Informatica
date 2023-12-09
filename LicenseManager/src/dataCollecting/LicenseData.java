@@ -17,6 +17,8 @@ public class LicenseData {
     public ComputerProperties pc;
     @Expose
     public AppProperties app;
+    @Expose
+    public String validity;
 
     public LicenseData(UserCard user, ComputerProperties pc, AppProperties app) {
         this.user = user;
@@ -27,5 +29,9 @@ public class LicenseData {
     public LicenseData(UserCard user, AppProperties app) {
         this.user = user;
         this.app = app;
+    }
+
+    public void setValidity(String validity) {
+        this.validity = validity;
     }
 }

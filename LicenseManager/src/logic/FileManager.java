@@ -217,7 +217,6 @@ public class FileManager {
                 zipEntry = zipInputStream.getNextEntry();
             }
 
-            System.out.println("File successfully unzipped!");
 
         } catch (IOException e) {
             e.printStackTrace();
@@ -344,7 +343,7 @@ public class FileManager {
                 }
             }
         }
-        return list.substring(0, list.length()-1);
+        return list;
     }
 
     public String createPurchaseFileName(String dir) {

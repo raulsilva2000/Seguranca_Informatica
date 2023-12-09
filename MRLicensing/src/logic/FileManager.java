@@ -30,7 +30,7 @@ import pt.gov.cartaodecidadao.PTEID_Exception;
  * @author Miguel
  */
 public class FileManager {
-    private static String distFolder = (new File(MRLicensing.class.getProtectionDomain().getCodeSource().getLocation().getPath())).getParentFile().getAbsolutePath().replace("\\", "/");
+    private static String distFolder = (new File(MRLicensing.class.getProtectionDomain().getCodeSource().getLocation().getPath())).getParentFile().getParentFile().getAbsolutePath().replace("\\", "/");
     private static String licenseRep = distFolder + "/LicenseRep";
 
     public FileManager() {

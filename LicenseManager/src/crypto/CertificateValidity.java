@@ -66,7 +66,7 @@ public class CertificateValidity {
         }
     }
     
-    private void buildCertificationPath() throws FileNotFoundException, CertificateException, IOException, NoSuchAlgorithmException, KeyStoreException, InvalidAlgorithmParameterException, CertPathBuilderException{
+    private void buildCertificationPath(String ptCardCertFolder) throws FileNotFoundException, CertificateException, IOException, NoSuchAlgorithmException, KeyStoreException, InvalidAlgorithmParameterException, CertPathBuilderException{
         //defines the end-user certificate as a selector
         X509CertSelector cs = new X509CertSelector();
         cs.setCertificate(this.userCertificate);
@@ -76,7 +76,7 @@ public class CertificateValidity {
         // Create a KeyStore with the Gov Trust Anchor
         trustAnchorKeyStore = KeyStore.getInstance(KeyStore.getDefaultType());
         trustAnchorKeyStore.load(null, null); // Initialize the keystore
-        FileInputStream fis = new FileInputStream("PTCardCertificates/govTrustCertificate/ECRaizEstado002.crt"); // Read the Gov Trust Anchor
+        FileInputStream fis = new FileInputStream(ptCardCertFolder+"/govTrustCertificate/ECRaizEstado002.crt"); // Read the Gov Trust Anchor
         X509Certificate trustAnchorCertificate = (X509Certificate) certificateFactory.generateCertificate(fis);
         fis.close();
         trustAnchorKeyStore.setCertificateEntry(trustAnchorCertificate.getSubjectX500Principal().getName(), trustAnchorCertificate);
@@ -87,7 +87,7 @@ public class CertificateValidity {
         pkixBParams.setRevocationEnabled(false); //No revocation check
         
         // Get Intermediate Certificates
-        File intermediateCertFolder = new File("PTCardCertificates/intermediateCertificates/");
+        File intermediateCertFolder = new File(ptCardCertFolder+"/intermediateCertificates/");
         File[] listOfIntermediateCertFiles = intermediateCertFolder.listFiles();
         
         List<X509Certificate> iCerts = new ArrayList<>();
@@ -125,13 +125,13 @@ public class CertificateValidity {
         cpv.validate(cp, pkixParams);
     }
     
-    public boolean isCertificateValid(String govTrustAnchor, String intermediateCertificates){
+    public boolean isCertificateValid(String ptCardCertFolder){
         try{
             // First See if the Certificate Time is Valid
             isCertificateTimeValid();
 
             // Build the Certification Path
-            buildCertificationPath();
+            buildCertificationPath(ptCardCertFolder);
 
             // Validate the Certification Path
             validateCertificationPath();

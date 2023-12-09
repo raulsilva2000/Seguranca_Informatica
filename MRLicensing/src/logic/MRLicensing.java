@@ -58,7 +58,7 @@ public class MRLicensing {
 
     public MRLicensing() {
         fileManager=new FileManager();
-        distFolder = (new File(MRLicensing.class.getProtectionDomain().getCodeSource().getLocation().getPath())).getParentFile().getAbsolutePath().replace("\\", "/");
+        distFolder = (new File(MRLicensing.class.getProtectionDomain().getCodeSource().getLocation().getPath())).getParentFile().getParentFile().getAbsolutePath().replace("\\", "/");
         licenseRep = distFolder + "/LicenseRep";
         tempWorkingDir=licenseRep+"/TempWorkingDir";
         fileManager.createFolder(licenseRep);
@@ -179,7 +179,7 @@ public class MRLicensing {
     
     private void signDataJSON(String jsonFile,String tempFolder) throws KeyStoreException, IOException, NoSuchAlgorithmException, CertificateException, UnrecoverableKeyException, InvalidKeyException, SignatureException, Exception{
         //sign json
-        digitalSignature.signFileWithID(jsonFile, tempFolder+"/certicate.crt", tempFolder+"/signature.txt");
+        digitalSignature.signFileWithID(jsonFile, tempFolder+"/certificate.crt", tempFolder+"/signature.txt");
         
         
     }
