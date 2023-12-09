@@ -26,11 +26,14 @@ import java.security.cert.CollectionCertStoreParameters;
 import java.security.cert.PKIXBuilderParameters;
 import java.security.cert.PKIXParameters;
 import java.security.cert.PKIXRevocationChecker;
+import java.security.cert.TrustAnchor;
 import java.security.cert.X509CertSelector;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.EnumSet;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  *
@@ -73,17 +76,26 @@ public class CertificateValidity {
         //Create an object to build the certification path
         CertPathBuilder cpb = CertPathBuilder.getInstance("PKIX");
         
-        // Create a KeyStore with the Gov Trust Anchor
+        // Create a KeyStore with the Gov Trust Anchors
         trustAnchorKeyStore = KeyStore.getInstance(KeyStore.getDefaultType());
         trustAnchorKeyStore.load(null, null); // Initialize the keystore
-        FileInputStream fis = new FileInputStream(ptCardCertFolder+"/govTrustCertificate/ECRaizEstado002.crt"); // Read the Gov Trust Anchor
-        X509Certificate trustAnchorCertificate = (X509Certificate) certificateFactory.generateCertificate(fis);
-        fis.close();
-        trustAnchorKeyStore.setCertificateEntry(trustAnchorCertificate.getSubjectX500Principal().getName(), trustAnchorCertificate);
+        
+         // Get Trust Anchor Certificates
+        File trustAnchorFolder = new File(ptCardCertFolder + "/govTrustCertificate/");
+        File[] listOfTrustAnchorFiles = trustAnchorFolder.listFiles();
 
-        //Define the parameters to build the certification path and provide the Trust anchor
+        Set<TrustAnchor> trustAnchors = new HashSet<>();
+
+        for (File file : listOfTrustAnchorFiles) {
+            FileInputStream fis = new FileInputStream(file);
+            X509Certificate trustAnchorCertificate = (X509Certificate) certificateFactory.generateCertificate(fis);
+            trustAnchors.add(new TrustAnchor(trustAnchorCertificate, null));
+            fis.close();
+        }
+
+        //Define the parameters to build the certification path and provide the Trust anchor certificates (trustAnchors) and the end-user certificate (cs)
         //certificates (trustAnchors) and the end user certificate (cs)
-        PKIXBuilderParameters pkixBParams = new PKIXBuilderParameters(trustAnchorKeyStore, cs);
+        PKIXBuilderParameters pkixBParams = new PKIXBuilderParameters(trustAnchors, cs);
         pkixBParams.setRevocationEnabled(false); //No revocation check
         
         // Get Intermediate Certificates
@@ -93,7 +105,7 @@ public class CertificateValidity {
         List<X509Certificate> iCerts = new ArrayList<>();
         
         for(File file : listOfIntermediateCertFiles){
-            fis = new FileInputStream(file);
+            FileInputStream fis = new FileInputStream(file);
             X509Certificate intermediateCertificate = (X509Certificate) certificateFactory.generateCertificate(fis);
             iCerts.add(intermediateCertificate);
             fis.close();
