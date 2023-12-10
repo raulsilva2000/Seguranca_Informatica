@@ -64,4 +64,8 @@ public class AppProperties {
     public String getHash() {
         return hash;
     }
+    public String[] getMainAttributes(){
+        String [] atributes={"name","version","hash"};
+        return atributes;
+    }
 }

@@ -26,8 +26,10 @@ public class AppProperties {
     private String jarFileName;
     @Expose
     private String name;
+    @Expose
     private String version;
     final String algo = "SHA-256";
+    @Expose
     private String hash;
     private FileManager fileManager;
     

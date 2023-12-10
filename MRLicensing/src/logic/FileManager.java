@@ -17,6 +17,7 @@ import dataCollecting.UserCard;
 import dataCollecting.AppProperties;
 import dataCollecting.ComputerProperties;
 import dataCollecting.LicenseData;
+import java.io.FileReader;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.util.Scanner;
@@ -230,5 +231,10 @@ public class FileManager {
         
         aCipher.exportCertificateFromKeyStore(keyStoreFileName, password, alias, replacementUserCertificate);
 
+    }
+    public LicenseData JSONFiletoLicenseData(String jsonDataFile) throws IOException {
+        FileReader reader = new FileReader(jsonDataFile);
+
+        return new Gson().fromJson(reader, LicenseData.class);
     }
 }

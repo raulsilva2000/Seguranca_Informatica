@@ -404,7 +404,7 @@ public class FileManager {
         LicenseData ld = new LicenseData(user, pc, app);
         ld.setValidity(validity);
         Gson gson = new GsonBuilder().excludeFieldsWithoutExposeAnnotation().create();
-
+        
         writeToFile(gson.toJson(ld).getBytes(), outputFile);
     }
 }

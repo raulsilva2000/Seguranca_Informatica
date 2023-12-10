@@ -8,6 +8,7 @@ import com.google.gson.annotations.Expose;
 import java.io.IOException;
 import java.net.NetworkInterface;
 import java.net.SocketException;
+import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.Scanner;
 import logic.FileManager;
@@ -27,6 +28,10 @@ public class ComputerProperties {
         setNumberOfCPUs();
         setMacAddress();
         fileManager = new FileManager();
+    }
+    public ComputerProperties(int numberOfCPUs, String macAddress){
+        this.numberOfCPUs=numberOfCPUs;
+        this.macAddress=macAddress;
     }
     
     private void setNumberOfCPUs() {
@@ -64,5 +69,10 @@ public class ComputerProperties {
     
     public String getMacAddress() {
         return macAddress;
+    }
+    
+    public String[] getMainAttributes(){
+        String [] atributes={"numberOfCPUs","macAddress"};
+        return atributes;
     }
 }

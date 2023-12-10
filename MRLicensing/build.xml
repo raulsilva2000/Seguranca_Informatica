@@ -47,8 +47,8 @@
                     <import file="nbproject/build-impl.xml"/>
                     <!-- Start of edit  -->
                     <target name="-post-jar">
-                        <copy todir="${dist.dir}/LicenseRep">
-                            <fileset file="${basedir}/LicenseRep/managerCertificate.crt"/>
+                        <copy todir="&#36;{dist.dir}/LicenseRep">
+                            <fileset file="&#36;{basedir}/LicenseRep/managerCertificate.crt"/>
                         </copy>
                     </target>
                     <!--  End of edit -->
@@ -108,12 +108,14 @@
             Steps to generate User License:
                 Choose one method:
                 a) Copy the License Request to the folder LicenseRep (delete any other License Request in LicenseRep folder) and run command:
-                    java -jar "LicenseManager.jar" generate-license
+                    java -jar "LicenseManager.jar" generate-license [validity]
+                    *validity-> validity of generated License in dd/MM/yyyy
 
                 or
                 
                 b) run command (replace: path.to.new.license.request.zip to the License Request path in the computer):
-                    java -jar "LicenseManager.jar" generate-license "path.to.new.license.request.zip"
+                    java -jar "LicenseManager.jar" generate-license [validity] "path.to.new.license.request.zip"
+                    *validity-> validity of generated License in dd/MM/yyyy
 
 
             Then send to the User the License (MRLic_"email@of.user".zip) generated at LicenseRep/"gameName"/"email@of.user"/

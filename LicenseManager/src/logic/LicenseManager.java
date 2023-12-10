@@ -304,7 +304,7 @@ public class LicenseManager {
 
                     AppProperties appProp = new AppProperties(licenseReqData.getAsJsonObject("app").get("name").getAsString(), licenseReqData.getAsJsonObject("app").get("version").getAsString());
                     appProp.injectHash(licenseReqData.getAsJsonObject("app").get("hash").getAsString());
-
+     
                     fileManager.licenseDataToJSONFileWithValidity(licensePurchaseData.user, licensePurchaseData.pc, appProp, validity, lDataJsonFile);
                     //sign data.json com managerPrivateKey
                     //write signature file in data(folder)

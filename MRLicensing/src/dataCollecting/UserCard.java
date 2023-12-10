@@ -65,4 +65,8 @@ public class UserCard {
     public void setEmail(String email) {
         this.email = email;
     }
+    public String[] getMainAttributes(){
+        String [] atributes={"fullName","civilNumber","email"};
+        return atributes;
+    }
 }

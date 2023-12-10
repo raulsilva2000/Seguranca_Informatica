@@ -18,6 +18,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.Security;
+import java.security.UnrecoverableEntryException;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateEncodingException;
@@ -40,19 +41,20 @@ import org.bouncycastle.x509.X509V3CertificateGenerator;
  * @author Utilizador
  */
 public class AssymetricCipher {
+
     final String algo = "RSA";
     final String cipherMode = "ECB";
     final String padding = "PKCS1Padding";
     final int keySize = 4096;
     FileManager fileManager;
     private KeyStore keyStore;
-    
-    public AssymetricCipher() throws KeyStoreException{
-        fileManager =new FileManager();
+
+    public AssymetricCipher() throws KeyStoreException {
+        fileManager = new FileManager();
         keyStore = KeyStore.getInstance("JKS");
     }
-    
-    public void genKeyStore(KeyPair keyPair, String keyStorePassword, String alias, String keyStoreFileName) throws NoSuchAlgorithmException, IOException, Exception{
+
+    public void genKeyStore(KeyPair keyPair, String keyStorePassword, String alias, String keyStoreFileName) throws NoSuchAlgorithmException, IOException, Exception {
         // Generate a self-signed X.509 certificate
         X509Certificate selfSignedCertificate = generateSelfSignedCertificate(keyPair);
 
@@ -62,56 +64,61 @@ public class AssymetricCipher {
         // Add the key pair to the keystore
         char[] password = keyStorePassword.toCharArray(); // Change this password
         keyStore.setKeyEntry(alias, keyPair.getPrivate(), password, new Certificate[]{selfSignedCertificate});
-        
+
         // Save the keystore to a file
         try (FileOutputStream fos = new FileOutputStream(keyStoreFileName + ".jks")) {
             keyStore.store(fos, password);
         }
     }
-    
-    public KeyPair genKeyPair() throws NoSuchAlgorithmException{
+
+    public KeyPair genKeyPair() throws NoSuchAlgorithmException {
         KeyPairGenerator kpGenerator = KeyPairGenerator.getInstance(algo);
         kpGenerator.initialize(keySize);
         KeyPair pair = kpGenerator.generateKeyPair();
         return pair;
     }
-    
-    public void cipherFile(String fileToCipher, String encryptedFile, String certificateFile) throws IOException, NoSuchAlgorithmException, InvalidKeySpecException, InvalidKeyException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, CertificateException{
-        
+
+    public void cipherFile(String fileToCipher, String encryptedFile, String certificateFile) throws IOException, NoSuchAlgorithmException, InvalidKeySpecException, InvalidKeyException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, CertificateException {
+
         FileInputStream fis = new FileInputStream(certificateFile);
         CertificateFactory certificateFactory = CertificateFactory.getInstance("X.509");
         X509Certificate certificate = (X509Certificate) certificateFactory.generateCertificate(fis);
         fis.close();
-        
+
         byte[] arrayBytesWithContent = fileManager.readFileToBytes(fileToCipher);
-        
-        
+
         PublicKey publicKey = certificate.getPublicKey();
-        
-        Cipher encryptCipher = Cipher.getInstance(algo+"/"+cipherMode+"/"+padding);
+
+        Cipher encryptCipher = Cipher.getInstance(algo + "/" + cipherMode + "/" + padding);
         encryptCipher.init(Cipher.ENCRYPT_MODE, publicKey);
-        
+
         byte[] encryptedData = encryptCipher.doFinal(arrayBytesWithContent);
         fileManager.writeToFile(encryptedData, encryptedFile);
     }
-    
-    public void decipherFile(String fileToDecipher, String decryptedFile, String keyStoreFile, String keyStorePassword, String alias) throws IOException, NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, InvalidKeySpecException, IllegalBlockSizeException, BadPaddingException, CertificateException, KeyStoreException, UnrecoverableKeyException{
-        this.keyStore.load(new FileInputStream(keyStoreFile), keyStorePassword.toCharArray());
+
+    public void decipherFile(String fileToDecipher, String decryptedFile, String keyStoreFile, String keyStorePassword, String alias) throws IOException, NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, InvalidKeySpecException, IllegalBlockSizeException, BadPaddingException, CertificateException, KeyStoreException, UnrecoverableKeyException, Exception {
+        try {
+            this.keyStore.load(new FileInputStream(keyStoreFile), keyStorePassword.toCharArray());
+        } catch (IOException ex) {
+            if (ex.getCause() instanceof UnrecoverableKeyException) {
+                throw new Exception("A password esta incorreta!");
+            }
+            throw ex;
+        }
         byte[] arrayBytesWithContent = fileManager.readFileToBytes(fileToDecipher);
-        
+
         PrivateKey privateKey = (PrivateKey) keyStore.getKey(alias, keyStorePassword.toCharArray());
-        
-        Cipher decryptCipher = Cipher.getInstance(algo+"/"+cipherMode+"/"+padding);
+        Cipher decryptCipher = Cipher.getInstance(algo + "/" + cipherMode + "/" + padding);
         decryptCipher.init(Cipher.DECRYPT_MODE, privateKey);
-        
+
         byte[] decryptedData = decryptCipher.doFinal(arrayBytesWithContent);
         fileManager.writeToFile(decryptedData, decryptedFile);
     }
-    
+
     private X509Certificate generateSelfSignedCertificate(KeyPair keyPair) throws Exception {
         // Use Bouncy Castle library for X.509 certificate generation
         Security.addProvider(new BouncyCastleProvider());
-        
+
         X509V3CertificateGenerator certGen = new X509V3CertificateGenerator();
         X500Principal subjectName = new X500Principal("CN=SelfSignedCert");
 
@@ -125,7 +132,8 @@ public class AssymetricCipher {
 
         return certGen.generate(keyPair.getPrivate(), "BC");
     }
-    public void exportCertificateFromKeyStore(String keyStoreFile, String keyStorePassword, String alias, String certificateFileName) throws KeyStoreException, FileNotFoundException, IOException, CertificateEncodingException, NoSuchAlgorithmException, CertificateException{
+
+    public void exportCertificateFromKeyStore(String keyStoreFile, String keyStorePassword, String alias, String certificateFileName) throws KeyStoreException, FileNotFoundException, IOException, CertificateEncodingException, NoSuchAlgorithmException, CertificateException {
         FileInputStream fis = new FileInputStream(keyStoreFile + ".jks");
         keyStore.load(fis, keyStorePassword.toCharArray());
 
