@@ -452,7 +452,6 @@ public class MRLicensing {
      */
     public static String showObjInfo(Object obj) throws Exception {
 
-        System.out.println(obj.getClass().toString());
         String returnString = "";
         String[] attributes = {};
         if (obj instanceof ComputerProperties) {
